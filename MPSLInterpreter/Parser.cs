@@ -1,4 +1,4 @@
-using static MPSLInterpreter.TokenType;
+﻿using static MPSLInterpreter.TokenType;
 
 namespace MPSLInterpreter;
 
@@ -39,7 +39,7 @@ internal static class Parser
             {
 #if DEBUG
                 if (e.StackTrace != null)
-            {
+                {
                     Utils.WriteLineColored($"Parser Error: {e.StackTrace.TrimTo(2000)}\n", ConsoleColor.DarkGray);
                 }
 #endif
@@ -128,15 +128,19 @@ internal static class Parser
     {
         MatchNextToken(EOL);
 
+        Expression.Block block;
         if (PeekToken().Type == CURLY_LEFT)
         {
-            return BlockRule();
+            block = BlockRule();
         }
         else
         {
             RequireMatchNext(THICK_ARROW, "Expected '=>' or '{'.");
-            return new Expression.Block([StatementRule()]);
+            block = new Expression.Block([StatementRule()]);
         }
+
+        while (MatchNextToken(EOL)) { }
+        return block;
     }
 
     private static Expression.Block BlockRule()
@@ -272,6 +276,7 @@ internal static class Parser
             MATCH => MatchRule(),
             PAREN_LEFT => GroupingRule(),
             INTERPOLATED_STRING_MARKER => InterpolatedStringRule(),
+            EOF => throw ReportError(PreviousToken(), "Expected expression."),
             _ => throw ReportError(PeekToken(), "Expected expression.")
         };
     }
@@ -391,6 +396,11 @@ internal static class Parser
 
     private static void Synchronize()
     {
+        if (current >= tokens.Count)
+        {
+            return;
+        }
+
         if (PeekToken().Type != EOF)
         {
             ReadToken();
