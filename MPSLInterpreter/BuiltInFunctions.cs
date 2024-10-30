@@ -31,6 +31,7 @@ internal static class BuiltInFunctions
         { "regex_match", new (2, RegexMatch) },
         { "regex_matches", new (2, RegexMatches) },
         { "if", new (3, If) },
+        { "mod", new (2, Mod) },
     };
 
     private static double Time() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000d;
@@ -74,7 +75,7 @@ internal static class BuiltInFunctions
             throw new ArgumentException("Size cannot be negative.");
         }
     }
-    private static MPSLArray Range(double from, double to) => new(Enumerable.Range((int)from, (int)to - (int)from).Cast<object>());
+    private static MPSLArray Range(double from, double to) => new(Enumerable.Range((int)from, (int)to - (int)from).Select(n => (double)n).Cast<object>());
     private static MPSLArray RangeTo(double to) => Range(0, to);
     private static void SetColor(double color) => Console.ForegroundColor = (ConsoleColor)color;
     private static void SetBgColor(double color) => Console.BackgroundColor = (ConsoleColor)color;
@@ -89,4 +90,5 @@ internal static class BuiltInFunctions
     private static bool RegexMatch(string s, string p) => Regex.Match(s, p).Success;
     private static MPSLArray RegexMatches(string s, string p) => new(Regex.Matches(s, p).Select(m => m.Value));
     private static object? If(object? condition, object? ifTrue, object? ifFalse) => Interpreter.IsTruthy(condition) ? ifTrue : ifFalse;
+    private static double Mod(double number, double by) => number % by;
 }
