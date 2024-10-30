@@ -1,4 +1,4 @@
-﻿using static MPSLInterpreter.TokenType;
+using static MPSLInterpreter.TokenType;
 
 namespace MPSLInterpreter;
 
@@ -35,8 +35,15 @@ internal static class Parser
             {
                 statements.Add(StatementRule());
             }
-            catch (ParseException)
+            catch (ParseException e)
             {
+#if DEBUG
+                if (e.StackTrace != null)
+            {
+                    Utils.WriteLineColored($"Parser Error: {e.StackTrace.TrimTo(2000)}\n", ConsoleColor.DarkGray);
+                }
+#endif
+
                 Synchronize();
             }
 

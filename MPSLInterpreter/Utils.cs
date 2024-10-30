@@ -16,6 +16,11 @@ internal static class Utils
     {
         WriteColored(value + '\n', color);
     }
+
+    public static string TrimTo(this string str, int maxLength)
+    {
+        return str[..Math.Min(maxLength, str.Length)];
+    }
 }
 
 internal sealed class Void

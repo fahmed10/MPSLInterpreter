@@ -36,6 +36,13 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         catch (InterpretException e)
         {
             Utils.WriteLineColored(e.Message, ConsoleColor.Red);
+
+#if DEBUG
+            if (e.StackTrace != null)
+            {
+                Utils.WriteLineColored(e.StackTrace + '\n', ConsoleColor.DarkGray);
+            }
+#endif
         }
     }
 
