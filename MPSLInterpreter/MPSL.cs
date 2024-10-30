@@ -21,9 +21,22 @@ public static class MPSL
     /// <param name="environment">The global environment to use while running the code.</param>
     public static void RunFile(string path, MPSLEnvironment environment)
     {
-        string file = File.ReadAllText(path);
-        Directory.SetCurrentDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
-        Run(file, environment);
+        string? file = null;
+
+        try
+        {
+            file = File.ReadAllText(path);
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        }
+        catch
+        {
+            Utils.WriteLineColored($"An error occurred while trying to read the path '{path}'.", ConsoleColor.Red);
+        }
+
+        if (file != null)
+        {
+            Run(file, environment);
+        }
     }
 
     /// <summary>
