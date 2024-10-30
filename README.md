@@ -3,23 +3,32 @@
 A dynamically typed, high-level programming language designed for use as a scripting language.
 
 ## Example Code
-```cs
-# Take a string and return it reversed
-fn @rev_str str {
-	0 -> var i
-	"" -> var output
-	while i < @len_of str {
-		@ + str[(@len_of str) - i - 1] -> output
-		@ + 1 -> i
-	}
-	output
+```r
+fn @fib n {
+    if n <= 1 => n
+    else => @fib n - 1! + @fib n - 2
 }
 
-# Calculate nth number in Fibonacci sequence
-fn @fib n {
-	if n = 0 | n = 1 {
-		n -> break
-	}
-	(@fib n - 1) + (@fib n - 2)
+fn @get_ordinal num {
+    match @mod num, 100 {
+        @ = 11 | @ = 12 | @ = 13 => "th"
+        else => match @mod num, 10 {
+            @ = 1 => "st"
+            @ = 2 => "nd"
+            @ = 3 => "rd"
+            else => "th"
+        }
+    } -> var suffix
+
+    @"{num}{suffix}"
+}
+
+# Calculate 20 numbers in the Fibonacci sequence
+each i : @range_to 20 {
+    @print @"{@get_ordinal i + 1}: {@fib i}"
 }
 ```
+
+## Running Standalone
+
+Clone this repository and build the source code. Run the executable from the command line and pass in the path to the MPSL file you would like to run.
