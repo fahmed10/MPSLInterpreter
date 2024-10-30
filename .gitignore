@@ -358,3 +358,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 Properties/
+.vscode
