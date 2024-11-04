@@ -1,9 +1,14 @@
-namespace MPSLInterpreter;
+﻿namespace MPSLInterpreter;
 
 public static class MPSL
 {
     private static void Main(string[] args)
     {
+#if TEST
+        TestRunner.RunTests("tests");
+        return;
+#endif
+
         if (args.Length == 1)
         {
             RunFile(args[0], new());

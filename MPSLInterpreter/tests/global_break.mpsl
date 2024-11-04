@@ -1,0 +1,4 @@
+break
+
+# @EXPECT ERROR
+# [L1, C5] Runtime Error: Cannot use break outside of a loop or function body.

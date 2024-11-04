@@ -29,6 +29,10 @@ each i : @range_to 20 {
 }
 ```
 
-## Running Standalone
+## Using Standalone
 
 Clone this repository and build the source code. Run the executable from the command line and pass in the path to the MPSL file you would like to run.
+
+## Running Tests
+
+If using Visual Studio, change the configuration to 'Test' and run. Otherwise, run `dotnet run -c test` from the command line.

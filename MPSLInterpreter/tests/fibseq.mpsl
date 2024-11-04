@@ -1,0 +1,25 @@
+fn @fib n {
+    if n <= 1 => n
+    else => @fib n - 1! + @fib n - 2
+}
+
+each i : @range_to 15 {
+    @print @fib i
+}
+
+# @EXPECT RUN
+# 0
+# 1
+# 1
+# 2
+# 3
+# 5
+# 8
+# 13
+# 21
+# 34
+# 55
+# 89
+# 144
+# 233
+# 377
