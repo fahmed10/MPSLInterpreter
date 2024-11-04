@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace MPSLInterpreter;
 
@@ -32,6 +33,7 @@ internal static class BuiltInFunctions
         { "regex_matches", new (2, RegexMatches) },
         { "if", new (3, If) },
         { "mod", new (2, Mod) },
+        { "run_process", new (2, Run) },
     };
 
     private static double Time() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000d;
@@ -91,4 +93,5 @@ internal static class BuiltInFunctions
     private static MPSLArray RegexMatches(string s, string p) => new(Regex.Matches(s, p).Select(m => m.Value));
     private static object? If(object? condition, object? ifTrue, object? ifFalse) => Interpreter.IsTruthy(condition) ? ifTrue : ifFalse;
     private static double Mod(double number, double by) => number % by;
+    private static void Run(string path, string args) => Process.Start(new ProcessStartInfo(path, args));
 }
