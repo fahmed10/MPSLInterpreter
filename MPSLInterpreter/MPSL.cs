@@ -1,4 +1,4 @@
-﻿namespace MPSLInterpreter;
+namespace MPSLInterpreter;
 
 public static class MPSL
 {
@@ -15,11 +15,12 @@ public static class MPSL
     }
 
     /// <summary>
-    /// Runs the MPSL code in the file at the given path. Also sets the location of the file as the current directory.
+    /// Runs the MPSL code in the file at the given path, setting the directory of the file as the current working directory.
     /// </summary>
     /// <param name="path">The path to the file to run.</param>
     /// <param name="environment">The global environment to use while running the code.</param>
-    public static void RunFile(string path, MPSLEnvironment environment)
+    /// <returns>True if no errors occured attempting to run the code, otherwise false.</returns>
+    public static bool RunFile(string path, MPSLEnvironment environment)
     {
         string? file = null;
 
@@ -35,8 +36,10 @@ public static class MPSL
 
         if (file != null)
         {
-            Run(file, environment);
+            return Run(file, environment);
         }
+
+        return false;
     }
 
     /// <summary>
@@ -44,7 +47,8 @@ public static class MPSL
     /// </summary>
     /// <param name="source">The MPSL code to run.</param>
     /// <param name="environment">The global environment to use while running the code.</param>
-    public static void Run(string source, MPSLEnvironment environment)
+    /// <returns>True if no errors occured attempting to run the code, otherwise false.</returns>
+    public static bool Run(string source, MPSLEnvironment environment)
     {
         IList<Token> tokens = Tokenizer.GetTokens(source, out IList<TokenizerError> tokenizerErrors);
 
@@ -62,11 +66,10 @@ public static class MPSL
 
         if (tokenizerErrors.Count > 0 || parserErrors.Count > 0)
         {
-            return;
+            return false;
         }
 
         Interpreter interpreter = new(environment);
-        interpreter.Interpret(statements);
-        return;
+        return interpreter.Interpret(statements);
     }
 }

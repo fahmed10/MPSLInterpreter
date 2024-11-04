@@ -10,8 +10,10 @@ internal class InterpretException(string message) : Exception(message);
 
 internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<object?>
 {
-    public readonly MPSLEnvironment globalEnvironment;
+    private readonly MPSLEnvironment globalEnvironment;
     public bool breakCalled = false;
+    private Token breakToken = null!;
+    private bool errorOccurred = false;
     public MPSLEnvironment environment;
 
     public Interpreter(MPSLEnvironment environment)
@@ -20,7 +22,12 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         this.environment = globalEnvironment;
     }
 
-    public void Interpret(IEnumerable<Statement> statements)
+    /// <summary>
+    /// Interprets the given statements.
+    /// </summary>
+    /// <param name="statements">The statements to interpret.</param>
+    /// <returns>True if no errors occured at runtime, otherwise false.</returns>
+    public bool Interpret(IEnumerable<Statement> statements)
     {
         try
         {
@@ -29,12 +36,13 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
                 Execute(statement);
                 if (breakCalled)
                 {
-                    ReportErrorRaw("Cannot use break outside of a loop or function body.");
+                    ReportError(breakToken, "Cannot use break outside of a loop or function body.");
                 }
             }
         }
         catch (InterpretException e)
         {
+            errorOccurred = true;
             Utils.WriteLineColored(e.Message, ConsoleColor.Red);
 
 #if DEBUG
@@ -44,9 +52,11 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
             }
 #endif
         }
+
+        return !errorOccurred;
     }
 
-    private object? Execute(Statement statement)
+    object? Execute(Statement statement)
     {
         return statement.Accept(this);
     }
@@ -307,6 +317,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
     public object? VisitBreak(Statement.Break statement)
     {
         breakCalled = true;
+        breakToken = statement.keyword;
         return null;
     }
 
