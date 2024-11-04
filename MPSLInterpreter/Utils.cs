@@ -14,7 +14,7 @@ internal static class Utils
 
     public static void WriteLineColored(string value, ConsoleColor color)
     {
-        WriteColored(value + '\n', color);
+        WriteColored(value + Environment.NewLine, color);
     }
 
     public static string TrimTo(this string str, int maxLength)
