@@ -35,4 +35,5 @@ Clone this repository and build the source code. Run the executable from the com
 
 ## Running Tests
 
-If using Visual Studio, change the configuration to 'Test' and run. Otherwise, run `dotnet run -c test` from the command line.
+If using Visual Studio, you can use Test Explorer. Otherwise, run `dotnet test` from the command line.
+

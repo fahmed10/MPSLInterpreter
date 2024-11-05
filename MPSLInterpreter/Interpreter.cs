@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -26,7 +26,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
     /// Interprets the given statements.
     /// </summary>
     /// <param name="statements">The statements to interpret.</param>
-    /// <returns>True if no errors occured at runtime, otherwise false.</returns>
+    /// <returns>True if no errors occurred at runtime, otherwise false.</returns>
     public bool Interpret(IEnumerable<Statement> statements)
     {
         try
@@ -44,13 +44,6 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         {
             errorOccurred = true;
             Utils.WriteLineColored(e.Message, ConsoleColor.Red);
-
-#if DEBUG
-            if (e.StackTrace != null)
-            {
-                Utils.WriteLineColored(e.StackTrace + '\n', ConsoleColor.DarkGray);
-            }
-#endif
         }
 
         return !errorOccurred;

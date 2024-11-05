@@ -4,11 +4,6 @@ public static class MPSL
 {
     private static void Main(string[] args)
     {
-#if TEST
-        TestRunner.RunTests("tests");
-        return;
-#endif
-
         if (args.Length == 1)
         {
             RunFile(args[0], new());
@@ -24,7 +19,7 @@ public static class MPSL
     /// </summary>
     /// <param name="path">The path to the file to run.</param>
     /// <param name="environment">The global environment to use while running the code.</param>
-    /// <returns>True if no errors occured attempting to run the code, otherwise false.</returns>
+    /// <returns>True if no errors occurred attempting to run the code, otherwise false.</returns>
     public static bool RunFile(string path, MPSLEnvironment environment)
     {
         string? file = null;
@@ -52,7 +47,7 @@ public static class MPSL
     /// </summary>
     /// <param name="source">The MPSL code to run.</param>
     /// <param name="environment">The global environment to use while running the code.</param>
-    /// <returns>True if no errors occured attempting to run the code, otherwise false.</returns>
+    /// <returns>True if no errors occurred attempting to run the code, otherwise false.</returns>
     public static bool Run(string source, MPSLEnvironment environment)
     {
         IList<Token> tokens = Tokenizer.GetTokens(source, out IList<TokenizerError> tokenizerErrors);
