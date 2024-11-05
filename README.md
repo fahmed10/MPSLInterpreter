@@ -37,3 +37,6 @@ Clone this repository and build the source code. Run the executable from the com
 
 If using Visual Studio, you can use Test Explorer. Otherwise, run `dotnet test` from the command line.
 
+## Documentation
+
+Documentation on MPSL can be found [here](https://github.com/fahmed10/MPSLInterpreter/wiki/Language-Reference).
