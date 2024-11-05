@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -263,11 +263,16 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         }
         else if (expression.target is Expression.Access access)
         {
-            Expression.Variable variable = (Expression.Variable)access.expression;
-            int index = Convert.ToInt32(Evaluate(access.indexExpression));
-            MPSLArray array = (MPSLArray)environment.GetVariableValue(variable.name);
-            environment.contextValue = array[index];
-            array[index] = Evaluate(expression.value);
+            if (Evaluate(access.expression) is MPSLArray array)
+            {
+                int index = GetIndexValue(access);
+                environment.contextValue = array[index];
+                array[index] = Evaluate(expression.value);
+            }
+            else
+            {
+                ReportError(access.start, "Only arrays can be assigned to with an access expression.");
+            }
         }
         else
         {
@@ -486,24 +491,31 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         return array;
     }
 
-    public object? VisitAccess(Expression.Access expression)
+    private int GetIndexValue(Expression.Access expression)
     {
-        object? value = Evaluate(expression.expression);
         object? index = Evaluate(expression.indexExpression);
 
         CheckNumericValue(expression.start, index);
         if (!double.IsInteger((double)index))
         {
-            ReportError(expression.start, "Access expression must evaluate to a whole number.");
+            ReportError(expression.start, "Index of access expression must evaluate to a whole number.");
         }
+
+        return (int)(double)index;
+    }
+
+    public object? VisitAccess(Expression.Access expression)
+    {
+        object? value = Evaluate(expression.expression);
+        int index = GetIndexValue(expression);
 
         if (value is MPSLArray a)
         {
-            return a[(int)(double)index];
+            return a[index];
         }
         else if (value is string s)
         {
-            return s[(int)(double)index].ToString();
+            return s[index].ToString();
         }
         else
         {
