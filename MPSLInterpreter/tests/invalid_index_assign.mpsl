@@ -1,0 +1,5 @@
+"test" -> var str
+"a" -> str[1]
+
+# @EXPECT ERROR
+# [L2, C12] Runtime Error: Only arrays can be assigned to with an access expression.
