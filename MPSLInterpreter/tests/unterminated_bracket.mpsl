@@ -1,0 +1,4 @@
+{
+
+# @EXPECT ERROR
+# [L4, C33] Expected expression.

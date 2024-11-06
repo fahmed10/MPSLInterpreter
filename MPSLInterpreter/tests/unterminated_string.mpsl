@@ -1,0 +1,4 @@
+@print "
+
+# @EXPECT ERROR
+# [L4, C42] Unterminated string literal.
