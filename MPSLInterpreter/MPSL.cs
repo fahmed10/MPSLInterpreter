@@ -19,8 +19,8 @@ public static class MPSL
     /// </summary>
     /// <param name="path">The path to the file to run.</param>
     /// <param name="environment">The global environment to use while running the code.</param>
-    /// <returns>True if no errors occurred attempting to run the code, otherwise false.</returns>
-    public static bool RunFile(string path, MPSLEnvironment environment)
+    /// <returns>The result of running the code.</returns>
+    public static MPSLRunResult RunFile(string path, MPSLEnvironment environment)
     {
         string? file = null;
 
@@ -39,7 +39,7 @@ public static class MPSL
             return Run(file, environment);
         }
 
-        return false;
+        return new(false, [], []);
     }
 
     /// <summary>
@@ -47,8 +47,8 @@ public static class MPSL
     /// </summary>
     /// <param name="source">The MPSL code to run.</param>
     /// <param name="environment">The global environment to use while running the code.</param>
-    /// <returns>True if no errors occurred attempting to run the code, otherwise false.</returns>
-    public static bool Run(string source, MPSLEnvironment environment)
+    /// <returns>The result of running the code.</returns>
+    public static MPSLRunResult Run(string source, MPSLEnvironment environment)
     {
         IList<Token> tokens = Tokenizer.GetTokens(source, out IList<TokenizerError> tokenizerErrors);
 
@@ -66,10 +66,11 @@ public static class MPSL
 
         if (tokenizerErrors.Count > 0 || parserErrors.Count > 0)
         {
-            return false;
+            return new(false, tokenizerErrors, parserErrors);
         }
 
         Interpreter interpreter = new(environment);
-        return interpreter.Interpret(statements);
+        bool success = interpreter.Interpret(statements);
+        return new(success, [], []);
     }
 }

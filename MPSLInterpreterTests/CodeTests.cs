@@ -1,5 +1,4 @@
 using MPSLInterpreter;
-using NUnit.Framework;
 
 namespace MPSLInterpreterTests;
 
@@ -20,7 +19,7 @@ public class CodeTests
         TextWriter standardOut = Console.Out;
         using StringWriter stringWriter = new();
         Console.SetOut(stringWriter);
-        bool success = MPSL.Run(code, new());
+        bool success = MPSL.Run(code, new()).Success;
         Console.SetOut(standardOut);
         string[] outputLines = stringWriter.ToString().Split(NEWLINE_STRINGS, StringSplitOptions.None);
 

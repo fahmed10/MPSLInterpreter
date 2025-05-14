@@ -2,7 +2,7 @@
 
 namespace MPSLInterpreter;
 
-internal record class TokenizerError(string Message);
+public record class TokenizerError(string Message);
 
 internal static class Tokenizer
 {

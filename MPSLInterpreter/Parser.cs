@@ -2,7 +2,7 @@
 
 namespace MPSLInterpreter;
 
-internal record class ParserError(string Message);
+public record class ParserError(string Message);
 internal class ParseException : Exception;
 
 internal static class Parser
