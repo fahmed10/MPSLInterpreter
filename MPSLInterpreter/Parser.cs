@@ -2,7 +2,7 @@
 
 namespace MPSLInterpreter;
 
-public record class ParserError(string Message);
+public record class ParserError(Token Token, string Message);
 internal class ParseException : Exception;
 
 internal static class Parser
@@ -466,7 +466,7 @@ internal static class Parser
 
     private static ParseException ReportError(Token token, string message)
     {
-        errors.Add(new ParserError($"[L{token.Line}, C{token.Column}] {message}"));
+        errors.Add(new ParserError(token, $"[L{token.Line}, C{token.Column}] {message}"));
         return new ParseException();
     }
 }
