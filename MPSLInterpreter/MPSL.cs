@@ -1,5 +1,8 @@
 ﻿namespace MPSLInterpreter;
 
+/// <summary>
+/// The main class for handling and running MPSL programs.
+/// </summary>
 public static class MPSL
 {
     private static void Main(string[] args)
@@ -50,27 +53,38 @@ public static class MPSL
     /// <returns>The result of running the code.</returns>
     public static MPSLRunResult Run(string source, MPSLEnvironment environment)
     {
-        IList<Token> tokens = Tokenizer.GetTokens(source, out IList<TokenizerError> tokenizerErrors);
+        MPSLCheckResult result = Check(source);
 
-        foreach (TokenizerError error in tokenizerErrors)
+        foreach (TokenizerError error in result.TokenizerErrors)
         {
             Utils.WriteLineColored(error.Message, ConsoleColor.Red);
         }
 
-        IList<Statement> statements = Parser.Parse(tokens, out IList<ParserError> parserErrors);
-
-        foreach (ParserError error in parserErrors)
+        foreach (ParserError error in result.ParserErrors)
         {
             Utils.WriteLineColored(error.Message, ConsoleColor.Red);
         }
 
-        if (tokenizerErrors.Count > 0 || parserErrors.Count > 0)
+        if (!result.Valid)
         {
-            return new(false, tokenizerErrors, parserErrors);
+            return new(false, result.TokenizerErrors, result.ParserErrors);
         }
 
         Interpreter interpreter = new(environment);
-        bool success = interpreter.Interpret(statements);
+        bool success = interpreter.Interpret(result.Statements);
         return new(success, [], []);
+    }
+
+    /// <summary>
+    /// Checks the given code, tokenizing and parsing it but not running it.
+    /// </summary>
+    /// <param name="source">The MPSL code to check.</param>
+    /// <returns>The result of checking the code.</returns>
+    public static MPSLCheckResult Check(string source)
+    {
+        IList<Token> tokens = Tokenizer.GetTokens(source, out IList<TokenizerError> tokenizerErrors);
+        IList<Statement> statements = Parser.Parse(tokens, out IList<ParserError> parserErrors);
+
+        return new(statements, tokenizerErrors, parserErrors);
     }
 }

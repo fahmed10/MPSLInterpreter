@@ -16,7 +16,7 @@ internal static class Tokenizer
 
     private static string CurrentString => code[start..current];
 
-    private static Dictionary<char, TokenType> operators = new()
+    private static readonly Dictionary<char, TokenType> operators = new()
     {
         { '+', PLUS },
         { '-', MINUS },
@@ -39,7 +39,7 @@ internal static class Tokenizer
         { '|', PIPE },
     };
 
-    private static Dictionary<string, TokenType> keywords = new()
+    private static readonly Dictionary<string, TokenType> keywords = new()
     {
         { "true", TRUE },
         { "false", FALSE },
