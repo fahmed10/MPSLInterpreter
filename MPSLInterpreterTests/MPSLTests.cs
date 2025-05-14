@@ -4,6 +4,21 @@ namespace MPSLInterpreterTests;
 
 public class MPSLTests
 {
+    TextWriter? consoleOut;
+
+    [OneTimeSetUp]
+    public void SetUp()
+    {
+        consoleOut = Console.Out;
+        Console.SetOut(TextWriter.Null);
+    }
+
+    [OneTimeTearDown]
+    public void TearDown()
+    {
+        Console.SetOut(consoleOut!);
+    }
+
     [Test]
     public void TestRunEmpty()
     {
