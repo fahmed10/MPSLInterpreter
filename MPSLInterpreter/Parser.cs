@@ -8,7 +8,7 @@ internal class ParseException : Exception;
 internal static class Parser
 {
     private static IList<Token> tokens = null!;
-    private static List<ParserError> errors = new();
+    private static readonly List<ParserError> errors = [];
     private static int current;
 
     private static TokenType[][] binaryOperators =
@@ -27,7 +27,7 @@ internal static class Parser
         Parser.errors.Clear();
         current = 0;
 
-        List<Statement> statements = new();
+        List<Statement> statements = [];
 
         while (!IsNextToken(EOF))
         {
@@ -69,13 +69,13 @@ internal static class Parser
         return ExpressionStatementRule();
     }
 
-    private static Statement UseRule()
+    private static Statement.Use UseRule()
     {
         Token path = RequireMatchNext(STRING, "Expected path to file to use as string.");
         return new Statement.Use(path);
     }
 
-    private static Statement IfRule()
+    private static Statement.If IfRule()
     {
         List<(Expression condition, Expression.Block body)> statements = new();
         Expression.Block? elseBlock = null;
@@ -98,19 +98,19 @@ internal static class Parser
         return new Statement.If(statements, elseBlock);
     }
 
-    private static Statement EachRule()
+    private static Statement.Each EachRule()
     {
         Token variableName = RequireMatchNext(IDENTIFIER, "Expected identifier.");
         RequireMatchNext(COLON, "Expected ':'.");
         return new Statement.Each(variableName, ExpressionRule(), StatementOrBlockRule());
     }
 
-    private static Statement WhileRule()
+    private static Statement.While WhileRule()
     {
         return new Statement.While(ExpressionRule(), StatementOrBlockRule());
     }
 
-    private static Statement BreakRule()
+    private static Statement.Break BreakRule()
     {
         Token keyword = PreviousToken();
         RequireMatchNext([EOL, EOF], "Expected <EOL>");
@@ -140,7 +140,7 @@ internal static class Parser
     {
         RequireMatchNext(CURLY_LEFT, "Expected '{'.");
 
-        List<Statement> statements = new();
+        List<Statement> statements = [];
 
         while (!MatchNextToken(CURLY_RIGHT))
         {
@@ -152,7 +152,7 @@ internal static class Parser
         return new Expression.Block(statements);
     }
 
-    private static Statement ExpressionStatementRule()
+    private static Statement.ExpressionStatement ExpressionStatementRule()
     {
         Expression expression = ExpressionRule();
         RequireMatchNext([EOL, EOF], "Expected <EOL>.");
@@ -274,9 +274,9 @@ internal static class Parser
         };
     }
 
-    private static Expression InterpolatedStringRule()
+    private static Expression.InterpolatedString InterpolatedStringRule()
     {
-        List<Expression> expressions = new();
+        List<Expression> expressions = [];
 
         while (!MatchNextToken(INTERPOLATED_STRING_MARKER))
         {
@@ -293,14 +293,14 @@ internal static class Parser
         return new Expression.InterpolatedString(expressions);
     }
 
-    private static Expression GroupingRule()
+    private static Expression.Grouping GroupingRule()
     {
         Expression expression = NonAssignExpressionRule();
         RequireMatchNext(PAREN_RIGHT, "Expected ')'.");
         return new Expression.Grouping(expression);
     }
 
-    private static Expression ArrayLiteralRule()
+    private static Expression.Array ArrayLiteralRule()
     {
         Token start = PreviousToken();
 
@@ -329,7 +329,7 @@ internal static class Parser
         return new Expression.Array(start, items);
     }
 
-    private static Expression MatchRule()
+    private static Expression.Match MatchRule()
     {
         Expression value = ExpressionRule();
         RequireMatchNext(CURLY_LEFT, "Expected '{'.");
@@ -351,10 +351,10 @@ internal static class Parser
         return new Expression.Match(value, statements, elseStatement);
     }
 
-    private static Statement FunctionRule()
+    private static Statement.FunctionDeclaration FunctionRule()
     {
         Token name = RequireMatchNext(COMMAND, "Function names must start with an '@' character.");
-        List<Token> parameters = new();
+        List<Token> parameters = [];
 
         if (PeekToken().Type is not CURLY_LEFT and not THICK_ARROW)
         {
@@ -368,11 +368,10 @@ internal static class Parser
         return new Statement.FunctionDeclaration(name, parameters, StatementOrBlockRule());
     }
 
-    private static Expression CallRule()
+    private static Expression.Call CallRule()
     {
         Token command = PreviousToken();
-        List<Expression> args = new List<Expression>();
-        string functionName = (string)command.Value!;
+        List<Expression> args = [];
 
         while (!MatchNextToken(EXCLAMATION) && !IsNextToken(CURLY_LEFT, EOL))
         {
@@ -428,7 +427,7 @@ internal static class Parser
     {
         if (!MatchNextToken(types))
         {
-            ReportError(ReadToken(), errorMessage);
+            ReportError(PeekToken(), errorMessage);
         }
 
         return PreviousToken();
@@ -465,7 +464,7 @@ internal static class Parser
         return tokens[current - 1];
     }
 
-    private static Exception ReportError(Token token, string message)
+    private static ParseException ReportError(Token token, string message)
     {
         errors.Add(new ParserError($"[L{token.Line}, C{token.Column}] {message}"));
         return new ParseException();

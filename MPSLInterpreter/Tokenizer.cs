@@ -7,8 +7,8 @@ public record class TokenizerError(string Message);
 internal static class Tokenizer
 {
     private static string code = "";
-    private static List<Token> tokens = new();
-    private static List<TokenizerError> errors = new();
+    private static readonly List<Token> tokens = [];
+    private static readonly List<TokenizerError> errors = [];
     private static int start;
     private static int current;
     private static int line;
@@ -90,7 +90,7 @@ internal static class Tokenizer
 
             if (code[current] == '"')
             {
-                ReadInterpolated('"', '"', '{', '}', INTERPOLATED_STRING_MARKER, INTERPOLATED_STRING_MARKER);
+                ReadInterpolated('"', '{', '}', INTERPOLATED_STRING_MARKER, INTERPOLATED_STRING_MARKER);
             }
             else if (!char.IsAsciiLetterOrDigit(code[current]))
             {
@@ -118,7 +118,7 @@ internal static class Tokenizer
         }
         else if (c is '<' && !IsLastToken(IDENTIFIER, NUMBER, STRING, PAREN_RIGHT, SQUARE_RIGHT, AT))
         {
-            ReadInterpolated('<', '>', '{', '}', ANGLE_LEFT, ANGLE_RIGHT);
+            ReadInterpolated('>', '{', '}', ANGLE_LEFT, ANGLE_RIGHT);
         }
         else if (char.IsAsciiLetter(c) || c is '_')
         {
@@ -168,10 +168,10 @@ internal static class Tokenizer
             current += 2;
             AddToken(LESSER_EQUAL);
         }
-        else if (operators.ContainsKey(c))
+        else if (operators.TryGetValue(c, out TokenType type))
         {
             current++;
-            AddToken(operators[c]);
+            AddToken(type);
         }
         else if (c is '#')
         {
@@ -213,7 +213,7 @@ internal static class Tokenizer
         }
     }
 
-    private static void ReadInterpolated(char startChar, char endChar, char interpolateStart, char interpolateEnd, TokenType startType, TokenType endType)
+    private static void ReadInterpolated(char endChar, char interpolateStart, char interpolateEnd, TokenType startType, TokenType endType)
     {
         current++;
         AddToken(startType);
