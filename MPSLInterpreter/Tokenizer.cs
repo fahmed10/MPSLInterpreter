@@ -2,7 +2,7 @@
 
 namespace MPSLInterpreter;
 
-public record class TokenizerError(string Message);
+public record class TokenizerError(int Line, int Column, string Message);
 
 internal static class Tokenizer
 {
@@ -305,7 +305,7 @@ internal static class Tokenizer
 
     private static void ReportError(string message)
     {
-        errors.Add(new TokenizerError($"[L{line}, C{current - lastLine}] {message}"));
+        errors.Add(new TokenizerError(line, current - lastLine, $"[L{line}, C{current - lastLine}] {message}"));
     }
 
     private static void AddToken(TokenType type, object? value = null)
