@@ -88,7 +88,11 @@ internal static class Tokenizer
         {
             current++;
 
-            if (code[current] == '"')
+            if (current >= code.Length)
+            {
+                AddToken(AT);
+            }
+            else if (code[current] == '"')
             {
                 ReadInterpolated('"', '{', '}', INTERPOLATED_STRING_MARKER, INTERPOLATED_STRING_MARKER);
             }
@@ -112,9 +116,12 @@ internal static class Tokenizer
             {
                 ReportError("Unterminated string literal.");
                 current = code.Length;
+                AddToken(STRING, CurrentString[1..]);
             }
-
-            AddToken(STRING, CurrentString[1..^1]);
+            else
+            {
+                AddToken(STRING, CurrentString[1..^1]);
+            }
         }
         else if (c is '<' && !IsLastToken(IDENTIFIER, NUMBER, STRING, PAREN_RIGHT, SQUARE_RIGHT, AT))
         {

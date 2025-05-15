@@ -1,8 +1,9 @@
+using System.Text.RegularExpressions;
 using MPSLInterpreter;
 
 namespace MPSLInterpreterTests;
 
-public class CodeTests
+public partial class CodeTests
 {
     private static readonly string[] NEWLINE_STRINGS = ["\r\n", "\r", "\n"];
 
@@ -19,7 +20,7 @@ public class CodeTests
         TextWriter standardOut = Console.Out;
         using StringWriter stringWriter = new();
         Console.SetOut(stringWriter);
-        bool success = MPSL.Run(code, new()).Success;
+        bool success = MPSL.Run(StripTestComments().Replace(code, "").TrimEnd(), new()).Success;
         Console.SetOut(standardOut);
         string[] outputLines = stringWriter.ToString().Split(NEWLINE_STRINGS, StringSplitOptions.None);
 
@@ -46,7 +47,7 @@ public class CodeTests
                 return;
             }
 
-            Assert.That(lines, Is.EquivalentTo(outputLines));
+            Assert.That(outputLines, Is.EquivalentTo(lines));
         }
         else if (lines[0].EndsWith("ERROR"))
         {
@@ -58,11 +59,14 @@ public class CodeTests
                 return;
             }
 
-            Assert.That(lines, Is.EquivalentTo(outputLines));
+            Assert.That(outputLines, Is.EquivalentTo(lines));
         }
         else
         {
             throw new InvalidDataException($"Expected line starting with '# @EXPECT RUN' or '# @EXPECT ERROR', but got '{lines[0]}'");
         }
     }
+
+    [GeneratedRegex(@"# @[A-Z]+(?:.|\n)+")]
+    private static partial Regex StripTestComments();
 }
