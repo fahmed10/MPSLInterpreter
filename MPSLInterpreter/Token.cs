@@ -1,11 +1,11 @@
 ﻿namespace MPSLInterpreter;
 
-public class Token(TokenType Type, string Lexeme, int Line, int Column, object? Value = null)
+public class Token(TokenType Type, string Lexeme, uint Line, uint Column, object? Value = null)
 {
     public TokenType Type { get; } = Type;
     public string Lexeme { get; } = Lexeme;
-    public int Line { get; } = Line;
-    public int Column { get; } = Column;
+    public uint Line { get; } = Line;
+    public uint Column { get; } = Column;
     public object? Value { get; } = Value;
 
     public override string ToString()
