@@ -1,11 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Frozen;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace MPSLInterpreter;
 
-internal static class BuiltInFunctions
+public static class BuiltInFunctions
 {
-    public static Dictionary<string, NativeFunction> functions = new()
+    public static readonly FrozenDictionary<string, NativeFunction> functions = new Dictionary<string, NativeFunction>()
     {
         { "time", new(0, Time) },
         { "print", new(1, Print) },
@@ -28,13 +29,14 @@ internal static class BuiltInFunctions
         { "make_dir", new (1, MakeDirectory) },
         { "read_dir", new (1, ReadDirectory) },
         { "replace", new (3, Replace) },
+        { "split", new(2, Split) },
         { "regex_replace", new (3, RegexReplace) },
         { "regex_match", new (2, RegexMatch) },
         { "regex_matches", new (2, RegexMatches) },
         { "if", new (3, If) },
         { "mod", new (2, Mod) },
         { "run_process", new (2, Run) },
-    };
+    }.ToFrozenDictionary();
 
     private static double Time() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000d;
     private static void Print(object value) => Console.WriteLine(Interpreter.ToMPSLString(value));
@@ -70,7 +72,7 @@ internal static class BuiltInFunctions
         {
             object?[] array = new object?[(int)size];
             Array.Fill(array, null);
-            return new MPSLArray(array);
+            return new(array);
         }
         else
         {
@@ -87,10 +89,11 @@ internal static class BuiltInFunctions
     private static void DeleteDirectory(string path) => Directory.Delete(path, true);
     private static void MakeDirectory(string path) => Directory.CreateDirectory(path);
     private static MPSLArray ReadDirectory(string path) => new(Directory.GetFiles(path));
-    private static string Replace(string s, string p, string r) => s.Replace(p, r);
-    private static string RegexReplace(string s, string p, string r) => Regex.Replace(s, p, r);
-    private static bool RegexMatch(string s, string p) => Regex.Match(s, p).Success;
-    private static MPSLArray RegexMatches(string s, string p) => new(Regex.Matches(s, p).Select(m => m.Value));
+    private static string Replace(string str, string pattern, string replacement) => str.Replace(pattern, replacement);
+    private static MPSLArray Split(string str, string delimiter) => new(str.Split(delimiter));
+    private static string RegexReplace(string str, string pattern, string replacement) => Regex.Replace(str, pattern, replacement);
+    private static bool RegexMatch(string str, string pattern) => Regex.Match(str, pattern).Success;
+    private static MPSLArray RegexMatches(string str, string pattern) => new(Regex.Matches(str, pattern).Select(m => m.Value));
     private static object? If(object? condition, object? ifTrue, object? ifFalse) => Interpreter.IsTruthy(condition) ? ifTrue : ifFalse;
     private static double Mod(double number, double by) => number % by;
     private static void Run(string path, string args) => Process.Start(new ProcessStartInfo(path, args));
