@@ -1,0 +1,16 @@
+4 -> var x
+
+if x < 1 {
+    @print "A"
+} else if x < 3 {
+    @print "B"
+} else if x < 4 {
+    @print "C"
+} else if x < 5 {
+    @print "D"
+} else {
+    @print "E"
+}
+
+# @EXPECT RUN
+# D

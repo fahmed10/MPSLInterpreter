@@ -1,4 +1,4 @@
 {
 
 # @EXPECT ERROR
-# [L1, C1] Expected expression.
+# [L1, C1] Expected '}'.

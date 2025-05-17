@@ -317,7 +317,7 @@ internal static class Tokenizer
 
     private static void AddToken(TokenType type, object? value = null)
     {
-        tokens.Add(new Token(type, code[start..current], (uint)line, (uint)(current - lastLine), value));
+        tokens.Add(new Token(type, code[start..current], (uint)line, (uint)(current - lastLine), start, value));
     }
 
     private static char NextChar()

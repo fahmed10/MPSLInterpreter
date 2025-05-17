@@ -1,0 +1,4 @@
+{fn @test => 2
+
+# @EXPECT ERROR
+# [L1, C14] Expected '}'.

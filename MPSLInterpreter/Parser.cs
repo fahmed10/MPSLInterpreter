@@ -70,13 +70,16 @@ internal static class Parser
 
     private static Statement.Use UseRule()
     {
+        Token useToken = PreviousToken();
         Token path = RequireMatchNext(STRING, "Expected path to file to use as string.");
-        return new Statement.Use(path);
+        return new Statement.Use(useToken, path);
     }
 
     private static Statement.If IfRule()
     {
-        List<(Expression condition, Expression.Block body)> statements = new();
+        Token ifToken = PreviousToken();
+
+        List<(Expression condition, Expression.Block body)> statements = [];
         Expression.Block? elseBlock = null;
 
         statements.Add((ExpressionRule(), StatementOrBlockRule()));
@@ -94,25 +97,26 @@ internal static class Parser
             }
         }
 
-        return new Statement.If(statements, elseBlock);
+        return new Statement.If(ifToken, statements, elseBlock);
     }
 
     private static Statement.Each EachRule()
     {
+        Token eachToken = PreviousToken();
         Token variableName = RequireMatchNext(IDENTIFIER, "Expected identifier.");
         RequireMatchNext(COLON, "Expected ':'.");
-        return new Statement.Each(variableName, ExpressionRule(), StatementOrBlockRule());
+        return new Statement.Each(eachToken, variableName, ExpressionRule(), StatementOrBlockRule());
     }
 
     private static Statement.While WhileRule()
     {
-        return new Statement.While(ExpressionRule(), StatementOrBlockRule());
+        return new Statement.While(PreviousToken(), ExpressionRule(), StatementOrBlockRule());
     }
 
     private static Statement.Break BreakRule()
     {
         Token keyword = PreviousToken();
-        RequireMatchNext([EOL, EOF], "Expected <EOL>");
+        RequireEndOfLineOrFile("Expected <EOL>");
         return new Statement.Break(keyword);
     }
 
@@ -128,7 +132,8 @@ internal static class Parser
         else
         {
             RequireMatchNext(THICK_ARROW, "Expected '=>' or '{'.");
-            block = new Expression.Block([StatementRule()]);
+            Statement statement = StatementRule();
+            block = new Expression.Block([statement], statement.Start, statement.End);
         }
 
         while (MatchNextToken(EOL)) { }
@@ -137,24 +142,29 @@ internal static class Parser
 
     private static Expression.Block BlockRule()
     {
-        RequireMatchNext(CURLY_LEFT, "Expected '{'.");
+        Token start = RequireMatchNext(CURLY_LEFT, "Expected '{'.");
 
         List<Statement> statements = [];
 
-        while (!MatchNextToken(CURLY_RIGHT))
+        while (!MatchNextToken(CURLY_RIGHT) && !IsNextToken(EOF))
         {
             while (MatchNextToken(EOL)) { }
             statements.Add(StatementRule());
             while (MatchNextToken(EOL)) { }
         }
 
-        return new Expression.Block(statements);
+        if (PreviousToken().Type != CURLY_RIGHT && IsNextToken(EOF))
+        {
+            ReportError(PeekToken(), "Expected '}'.");
+        }
+
+        return new Expression.Block(statements, start.Start, PreviousToken().End);
     }
 
     private static Statement.ExpressionStatement ExpressionStatementRule()
     {
         Expression expression = ExpressionRule();
-        RequireMatchNext([EOL, EOF], "Expected <EOL>.");
+        RequireEndOfLineOrFile("Expected <EOL>.");
 
         return new Statement.ExpressionStatement(expression);
     }
@@ -178,13 +188,14 @@ internal static class Parser
         {
             if (MatchNextToken(BREAK))
             {
-                return new Expression.Block([new Statement.ExpressionStatement(expression), new Statement.Break(PreviousToken())]);
+                IList<Statement> statements = [new Statement.ExpressionStatement(expression), new Statement.Break(PreviousToken())];
+                return new Expression.Block(statements, statements[0].Start, statements[1].End);
             }
             else if (MatchNextToken(SQUARE_LEFT))
             {
                 Token name = RequireMatchNext(IDENTIFIER, "Expected variable name.");
                 RequireMatchNext(SQUARE_RIGHT, "Expected ']'.");
-                return new Expression.Push(name, expression);
+                return new Expression.Push(name, expression, PreviousToken());
             }
             else
             {
@@ -198,8 +209,9 @@ internal static class Parser
     {
         if (MatchNextToken(VAR))
         {
+            Token varToken = PreviousToken();
             Token name = RequireMatchNext(IDENTIFIER, "Expected variable name.");
-            return new Expression.VariableDeclaration(name);
+            return new Expression.VariableDeclaration(varToken, name);
         }
         else
         {
@@ -247,7 +259,7 @@ internal static class Parser
             Token start = PreviousToken();
             Expression indexExpression = ExpressionRule();
             RequireMatchNext(SQUARE_RIGHT, "Expected ']'.");
-            expression = new Expression.Access(expression, indexExpression, start);
+            expression = new Expression.Access(expression, indexExpression, start, PreviousToken());
         }
 
         return expression;
@@ -257,12 +269,12 @@ internal static class Parser
     {
         return ReadToken().Type switch
         {
-            FALSE => new Expression.Literal(false),
-            TRUE => new Expression.Literal(true),
-            NULL => new Expression.Literal(null),
-            NUMBER or STRING => new Expression.Literal(PreviousToken().Value),
+            FALSE => new Expression.Literal(false, PreviousToken()),
+            TRUE => new Expression.Literal(true, PreviousToken()),
+            NULL => new Expression.Literal(null, PreviousToken()),
+            NUMBER or STRING => new Expression.Literal(PreviousToken().Value, PreviousToken()),
             IDENTIFIER => new Expression.Variable(PreviousToken()),
-            AT => new Expression.ContextValue(),
+            AT => new Expression.ContextValue(PreviousToken()),
             SQUARE_LEFT => ArrayLiteralRule(),
             COMMAND => CallRule(),
             MATCH => MatchRule(),
@@ -281,7 +293,7 @@ internal static class Parser
         {
             if (MatchNextToken(INTERPOLATED_TEXT))
             {
-                expressions.Add(new Expression.Literal(PreviousToken().Value));
+                expressions.Add(new Expression.Literal(PreviousToken().Value, PreviousToken()));
             }
             else
             {
@@ -294,9 +306,10 @@ internal static class Parser
 
     private static Expression.Grouping GroupingRule()
     {
+        Token start = PreviousToken();
         Expression expression = NonAssignExpressionRule();
         RequireMatchNext(PAREN_RIGHT, "Expected ')'.");
-        return new Expression.Grouping(expression);
+        return new Expression.Grouping(expression, start, PreviousToken());
     }
 
     private static Expression.Array ArrayLiteralRule()
@@ -305,7 +318,7 @@ internal static class Parser
 
         if (MatchNextToken(SQUARE_RIGHT))
         {
-            return new Expression.Array(start, []);
+            return new Expression.Array(start, [], PreviousToken());
         }
 
         List<(Expression, bool)> items = [];
@@ -323,13 +336,15 @@ internal static class Parser
         }
         while (MatchNextToken(COMMA));
 
-        RequireMatchNext(SQUARE_RIGHT, "Expected ']'.");
+        Token end = RequireMatchNext(SQUARE_RIGHT, "Expected ']'.");
 
-        return new Expression.Array(start, items);
+        return new Expression.Array(start, items, end);
     }
 
     private static Expression.Match MatchRule()
     {
+        Token start = PreviousToken();
+
         Expression value = ExpressionRule();
         RequireMatchNext(CURLY_LEFT, "Expected '{'.");
 
@@ -347,11 +362,13 @@ internal static class Parser
             RequireMatchNext(CURLY_RIGHT, "Expected '}'. An else match must be the last match statement in a match expression.");
         }
 
-        return new Expression.Match(value, statements, elseStatement);
+        Token end = PreviousToken();
+        return new Expression.Match(value, statements, elseStatement, start, end);
     }
 
     private static Statement.FunctionDeclaration FunctionRule()
     {
+        Token fnToken = PreviousToken();
         Token name = RequireMatchNext(COMMAND, "Function names must start with an '@' character.");
         List<Token> parameters = [];
 
@@ -364,7 +381,7 @@ internal static class Parser
             while (MatchNextToken(COMMA));
         }
 
-        return new Statement.FunctionDeclaration(name, parameters, StatementOrBlockRule());
+        return new Statement.FunctionDeclaration(fnToken, name, parameters, StatementOrBlockRule());
     }
 
     private static Expression.Call CallRule()
@@ -372,7 +389,7 @@ internal static class Parser
         Token command = PreviousToken();
         List<Expression> args = [];
 
-        while (!MatchNextToken(EXCLAMATION) && !IsNextToken(CURLY_LEFT, EOL))
+        while (!MatchNextToken(EXCLAMATION) && !IsNextToken(CURLY_LEFT, EOL, EOF))
         {
             args.Add(NonAssignExpressionRule());
             if (!MatchNextToken(COMMA))
@@ -430,6 +447,14 @@ internal static class Parser
         }
 
         return PreviousToken();
+    }
+
+    private static void RequireEndOfLineOrFile(string errorMessage)
+    {
+        if (!MatchNextToken(EOL) && !IsNextToken(EOF))
+        {
+            ReportError(PeekToken(), errorMessage);
+        }
     }
 
     private static Token PeekToken()
