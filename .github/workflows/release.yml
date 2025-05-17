@@ -4,12 +4,9 @@
 name: Create Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number'     
-        required: true
-        type: string
+    release:
+      types:
+        - created
 
 jobs:
   build:
@@ -25,10 +22,9 @@ jobs:
     - name: Build Release
       run: dotnet publish MPSLInterpreter --os win
     - name: Rename Executable
-      run: mv MPSLInterpreter/bin/Release/net9.0/win-x64/publish/MPSLInterpreter.exe MPSLInterpreter/bin/Release/net9.0/win-x64/publish/mpsl.exe
-    - name: Upload to Release Action
-      uses: Shopify/upload-to-release@v2.0.0
+      run: ren MPSLInterpreter/bin/Release/net9.0/win-x64/publish/MPSLInterpreter.exe mpsl.exe
+    - name: Upload Release
+      uses: shogo82148/actions-upload-release-asset@v1.8.0
       with:
-        name: Release v${{ inputs.version }}
-        path: MPSLInterpreter/bin/Release/net9.0/win-x64/publish/mpsl.exe
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        asset_path: MPSLInterpreter/bin/Release/net9.0/win-x64/publish/mpsl.exe
+        upload_url: ${{ github.event.release.upload_url }}
