@@ -1,4 +1,4 @@
-# MPSL: Multi-Purpose Scripting Language
+# MPSL: Multi-Purpose Scripting Language [![.NET Build & Test](https://github.com/fahmed10/MPSLInterpreter/actions/workflows/dotnet.yml/badge.svg)](https://github.com/fahmed10/MPSLInterpreter/actions/workflows/dotnet.yml)
 
 A dynamically typed, high-level programming language designed for use as a scripting language.
 
