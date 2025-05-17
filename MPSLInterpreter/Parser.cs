@@ -490,7 +490,7 @@ internal static class Parser
 
     private static ParseException ReportError(Token token, string message)
     {
-        errors.Add(new ParserError(token, $"[L{token.Line}, C{token.Column}] {message}"));
+        errors.Add(new ParserError(token, message));
         return new ParseException();
     }
 }

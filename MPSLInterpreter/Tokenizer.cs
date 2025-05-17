@@ -312,7 +312,7 @@ internal static class Tokenizer
 
     private static void ReportError(string message)
     {
-        errors.Add(new TokenizerError((uint)line, (uint)(current - lastLine), $"[L{line}, C{current - lastLine}] {message}"));
+        errors.Add(new TokenizerError((uint)line, (uint)(current - lastLine), message));
     }
 
     private static void AddToken(TokenType type, object? value = null)

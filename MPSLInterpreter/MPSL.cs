@@ -57,12 +57,12 @@ public static class MPSL
 
         foreach (TokenizerError error in result.TokenizerErrors)
         {
-            Utils.WriteLineColored(error.Message, ConsoleColor.Red);
+            Utils.WriteLineColored($"[L{error.Line}, C{error.Column}] {error.Message}", ConsoleColor.Red);
         }
 
         foreach (ParserError error in result.ParserErrors)
         {
-            Utils.WriteLineColored(error.Message, ConsoleColor.Red);
+            Utils.WriteLineColored($"[L{error.Token.Line}, C{error.Token.Column}] {error.Message}", ConsoleColor.Red);
         }
 
         if (!result.Valid)
