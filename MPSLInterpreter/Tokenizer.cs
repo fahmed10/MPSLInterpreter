@@ -75,7 +75,7 @@ internal static class Tokenizer
             start = current;
         }
 
-        tokens.Add(new Token(EOF, "", (uint)line, (uint)(current - lastLine)));
+        tokens.Add(new(EOF, "", (uint)line, (uint)(current - lastLine), start));
         errors = Tokenizer.errors;
 
         return tokens;

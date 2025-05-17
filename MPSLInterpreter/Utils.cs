@@ -23,11 +23,6 @@ internal static class Utils
     }
 }
 
-internal sealed class Void
-{
-    private Void() { }
-}
-
 internal sealed class Invalid
 {
     public static Invalid Value = new();

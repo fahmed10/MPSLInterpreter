@@ -11,15 +11,14 @@ internal static class Parser
     private static readonly List<ParserError> errors = [];
     private static int current;
 
-    private static TokenType[][] binaryOperators =
-    {
+    private static readonly TokenType[][] binaryOperators = [
         [PIPE], // Or
         [AMPERSAND], // And
         [EQUAL, EXCLAMATION_EQUAL], // Equality
         [LESSER, GREATER, LESSER_EQUAL, GREATER_EQUAL], // Comparison
         [PLUS, MINUS], // Sum
         [ASTERISK, SLASH], // Factor
-    };
+    ];
 
     public static IList<Statement> Parse(IList<Token> tokens, out IList<ParserError> errors)
     {
@@ -309,7 +308,7 @@ internal static class Parser
             return new Expression.Array(start, []);
         }
 
-        List<(Expression, bool)> items = new();
+        List<(Expression, bool)> items = [];
 
         do
         {
@@ -334,7 +333,7 @@ internal static class Parser
         Expression value = ExpressionRule();
         RequireMatchNext(CURLY_LEFT, "Expected '{'.");
 
-        List<(Expression condition, Expression.Block body)> statements = new();
+        List<(Expression condition, Expression.Block body)> statements = [];
         Expression.Block? elseStatement = null;
 
         while (!MatchNextToken(CURLY_RIGHT, ELSE))
