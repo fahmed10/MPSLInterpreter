@@ -1,0 +1,10 @@
+@print true | true
+@print true | false
+@print false | true
+@print false | false
+
+# @EXPECT RUN
+# True
+# True
+# True
+# False

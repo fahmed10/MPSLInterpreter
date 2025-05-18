@@ -1,0 +1,12 @@
+1 -> var x
+match x {
+    @ = 1 => "One"
+    @ > -1 {
+        "Zero+"
+    }
+    else => "?"
+} -> var result
+@print result
+
+# @EXPECT RUN
+# One
