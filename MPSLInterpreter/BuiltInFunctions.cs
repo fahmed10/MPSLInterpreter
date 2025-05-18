@@ -22,20 +22,21 @@ public static class BuiltInFunctions
         { "range_to", new(1, RangeTo) },
         { "set_color", new(1, SetColor) },
         { "set_bg_color", new(1, SetBgColor) },
-        { "read_file", new (1, ReadFile) },
-        { "write_file", new (2, WriteFile) },
-        { "del_file", new (1, DeleteFile) },
-        { "del_dir", new (1, DeleteDirectory) },
-        { "make_dir", new (1, MakeDirectory) },
-        { "read_dir", new (1, ReadDirectory) },
-        { "replace", new (3, Replace) },
+        { "read_file", new(1, ReadFile) },
+        { "write_file", new(2, WriteFile) },
+        { "del_file", new(1, DeleteFile) },
+        { "del_dir", new(1, DeleteDirectory) },
+        { "make_dir", new(1, MakeDirectory) },
+        { "read_dir", new(1, ReadDirectory) },
+        { "replace", new(3, Replace) },
         { "split", new(2, Split) },
-        { "regex_replace", new (3, RegexReplace) },
-        { "regex_match", new (2, RegexMatch) },
-        { "regex_matches", new (2, RegexMatches) },
-        { "if", new (3, If) },
-        { "mod", new (2, Mod) },
-        { "run_process", new (2, Run) },
+        { "regex_replace", new(3, RegexReplace) },
+        { "regex_match", new(2, RegexMatch) },
+        { "regex_matches", new(2, RegexMatches) },
+        { "if", new(3, If) },
+        { "mod", new(2, Mod) },
+        { "run_process", new(2, Run) },
+        { "str", new(1, ToStr) }
     }.ToFrozenDictionary();
 
     private static double Time() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -97,4 +98,5 @@ public static class BuiltInFunctions
     private static object? If(object? condition, object? ifTrue, object? ifFalse) => Interpreter.IsTruthy(condition) ? ifTrue : ifFalse;
     private static double Mod(double number, double by) => number % by;
     private static void Run(string path, string args) => Process.Start(new ProcessStartInfo(path, args));
+    private static void ToStr(object? value) => Interpreter.ToMPSLString(value);
 }

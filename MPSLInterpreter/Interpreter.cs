@@ -225,7 +225,6 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         return expression.operatorToken.Type switch
         {
             EXCLAMATION => !IsTruthy(value),
-            DOLLAR => ToMPSLString(value),
             _ => throw new NotImplementedException()
         };
     }

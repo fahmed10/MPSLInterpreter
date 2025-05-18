@@ -240,7 +240,7 @@ internal static class Parser
 
     private static Expression UnaryRule()
     {
-        if (MatchNextToken(EXCLAMATION, MINUS, DOLLAR))
+        if (MatchNextToken(EXCLAMATION, MINUS))
         {
             Token operatorToken = PreviousToken();
             Expression right = UnaryRule();

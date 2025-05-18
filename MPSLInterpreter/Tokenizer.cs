@@ -33,7 +33,6 @@ internal static class Tokenizer
         { ')', PAREN_RIGHT },
         { '[', SQUARE_LEFT },
         { ']', SQUARE_RIGHT },
-        { '$', DOLLAR },
         { '!', EXCLAMATION },
         { '&', AMPERSAND },
         { '|', PIPE },
