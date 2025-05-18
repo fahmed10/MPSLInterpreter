@@ -85,6 +85,6 @@ public static class MPSL
         IList<Token> tokens = Tokenizer.GetTokens(source, out IList<TokenizerError> tokenizerErrors);
         IList<Statement> statements = Parser.Parse(tokens, out IList<ParserError> parserErrors);
 
-        return new(statements, tokenizerErrors, parserErrors);
+        return new(tokens, statements, tokenizerErrors, parserErrors);
     }
 }
