@@ -287,6 +287,7 @@ internal static class Parser
 
     private static Expression.InterpolatedString InterpolatedStringRule()
     {
+        Token start = PreviousToken();
         List<Expression> expressions = [];
 
         while (!MatchNextToken(INTERPOLATED_STRING_MARKER))
@@ -301,7 +302,7 @@ internal static class Parser
             }
         }
 
-        return new Expression.InterpolatedString(expressions);
+        return new Expression.InterpolatedString(expressions, start, PreviousToken());
     }
 
     private static Expression.Grouping GroupingRule()

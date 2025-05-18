@@ -145,10 +145,10 @@ public abstract record class Expression
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitArray(this);
         public override void Accept(IVisitor visitor) => visitor.VisitArray(this);
     }
-    public record InterpolatedString(IList<Expression> expressions) : Expression
+    public record InterpolatedString(IList<Expression> expressions, Token start, Token end) : Expression
     {
-        public override int Start => expressions.First().Start;
-        public override int End => expressions.Last().End;
+        public override int Start => start.Start;
+        public override int End => end.End;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitInterpolatedString(this);
         public override void Accept(IVisitor visitor) => visitor.VisitInterpolatedString(this);
