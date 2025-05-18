@@ -38,7 +38,7 @@ public static class BuiltInFunctions
         { "run_process", new (2, Run) },
     }.ToFrozenDictionary();
 
-    private static double Time() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000d;
+    private static double Time() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
     private static void Print(object value) => Console.WriteLine(Interpreter.ToMPSLString(value));
     private static void Write(object value) => Console.Write(Interpreter.ToMPSLString(value));
     private static string? Read() => Console.ReadLine();
