@@ -18,6 +18,8 @@ public static class BuiltInFunctions
         { "wait", new(1, Wait) },
         { "length", new(1, Length) },
         { "fill_array", new(1, FillArray) },
+        { "insert", new(2, Insert) },
+        { "remove_at", new(2, RemoveAt) },
         { "range", new(2, Range) },
         { "range_to", new(1, RangeTo) },
         { "set_color", new(1, SetColor) },
@@ -40,8 +42,8 @@ public static class BuiltInFunctions
     }.ToFrozenDictionary();
 
     private static double Time() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-    private static void Print(object value) => Console.WriteLine(Interpreter.ToMPSLString(value));
-    private static void Write(object value) => Console.Write(Interpreter.ToMPSLString(value));
+    private static void Print(object? value) => Console.WriteLine(Interpreter.ToMPSLString(value));
+    private static void Write(object? value) => Console.Write(Interpreter.ToMPSLString(value));
     private static string? Read() => Console.ReadLine();
     private static string? ReadKey() => Console.ReadKey(true).KeyChar.ToString();
     private static double? ParseNum(string value)
@@ -58,12 +60,13 @@ public static class BuiltInFunctions
     {
         Task.Delay(TimeSpan.FromSeconds(time)).Wait();
     }
-    private static double Length(object value)
+    private static double Length(object? value)
     {
         return value switch
         {
             string s => s.Length,
             MPSLArray a => a.Count,
+            null => throw new ArgumentException("Cannot get the length of null."),
             _ => throw new ArgumentException("Can only get the length of a string or array.")
         };
     }
@@ -78,6 +81,28 @@ public static class BuiltInFunctions
         else
         {
             throw new ArgumentException("Size cannot be negative.");
+        }
+    }
+    private static void Insert(MPSLArray array, double index, object? value)
+    {
+        if (index >= 0)
+        {
+            array.Insert((int)index, value);
+        }
+        else
+        {
+            throw new ArgumentException("Index cannot be negative.");
+        }
+    }
+    private static void RemoveAt(MPSLArray array, double index)
+    {
+        if (index >= 0)
+        {
+            array.RemoveAt((int)index);
+        }
+        else
+        {
+            throw new ArgumentException("Index cannot be negative.");
         }
     }
     private static MPSLArray Range(double from, double to) => new(Enumerable.Range((int)from, (int)to - (int)from).Select(n => (double)n).Cast<object>());
