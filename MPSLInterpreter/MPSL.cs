@@ -83,7 +83,7 @@ public static class MPSL
     public static MPSLCheckResult Check(string source)
     {
         IList<Token> tokens = Tokenizer.GetTokens(source, out IList<TokenizerError> tokenizerErrors);
-        IList<Statement> statements = Parser.Parse(tokens, out IList<ParserError> parserErrors);
+        IList<Statement> statements = Parser.Parse(tokens.Where(t => t.Type != TokenType.COMMENT).ToList(), out IList<ParserError> parserErrors);
 
         return new(tokens, statements, tokenizerErrors, parserErrors);
     }

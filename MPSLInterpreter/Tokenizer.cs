@@ -190,11 +190,15 @@ internal static class Tokenizer
                 if (current > code.Length)
                 {
                     ReportError("Expected '##', got <EOF>.");
+                    current = code.Length;
                 }
+
+                AddToken(COMMENT);
             }
             else
             {
                 AdvanceWhile(c => c is not '\n');
+                AddToken(COMMENT);
             }
         }
         else if (c is '\n')
