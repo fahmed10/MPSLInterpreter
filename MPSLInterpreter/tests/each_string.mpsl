@@ -1,0 +1,16 @@
+each char : "test string" {
+    @print char
+}
+
+# @EXPECT RUN
+# t
+# e
+# s
+# t
+#  
+# s
+# t
+# r
+# i
+# n
+# g

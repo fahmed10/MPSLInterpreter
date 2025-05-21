@@ -1,0 +1,8 @@
+each value : [1, "a", 5] {
+    @print value
+}
+
+# @EXPECT RUN
+# 1
+# a
+# 5
