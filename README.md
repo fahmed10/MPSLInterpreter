@@ -31,7 +31,7 @@ each i : @range_to 20 {
 
 ## Using Standalone
 
-Clone this repository and build the source code. Run the executable from the command line and pass in the path to the MPSL file you would like to run.
+Clone this repository and build the source code for the latest version, or download the interpreter executable from the releases section. Run the executable from the command line and pass in the path to the MPSL file you would like to run.
 
 ## Running Tests
 
