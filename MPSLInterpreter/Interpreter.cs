@@ -287,7 +287,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitCall(Expression.Call expression)
     {
-        List<object?> arguments = new();
+        List<object?> arguments = [];
         foreach (Expression argument in expression.arguments)
         {
             arguments.Add(Evaluate(argument));
@@ -327,10 +327,10 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
     {
         MPSLEnvironment previous = environment;
         object? lastValue = Invalid.Value;
+
         try
         {
-            environment = new MPSLEnvironment(environment);
-            environment.contextValue = contextValue;
+            environment = new(environment) { contextValue = contextValue };
             environmentAction?.Invoke(environment);
 
             foreach (Statement statement in block.statements)
@@ -352,7 +352,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
             environment = previous;
         }
 
-        return lastValue;
+        return lastValue is Invalid ? null : lastValue;
     }
 
     public object? VisitBlock(Expression.Block expression)
@@ -442,8 +442,8 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
                 return VisitBlock(body);
             }
         }
-        environment.contextValue = Invalid.Value;
 
+        environment.contextValue = Invalid.Value;
         if (expression.elseBlock is not null)
         {
             return VisitBlock(expression.elseBlock);
@@ -465,7 +465,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitArray(Expression.Array expression)
     {
-        MPSLArray array = new MPSLArray();
+        MPSLArray array = [];
 
         foreach (var item in expression.items)
         {

@@ -1,0 +1,7 @@
+match 0 {
+    @ = 0 { }
+} -> var n
+@print n
+
+# @EXPECT RUN
+# null
