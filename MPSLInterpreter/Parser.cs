@@ -217,7 +217,7 @@ internal static class Parser
         {
             if (!IsNextToken(IDENTIFIER))
             {
-                ReportError(ReadToken(), "Expected variable name.");
+                throw ReportError(ReadToken(), "Expected variable name.");
             }
 
             return AccessRule();

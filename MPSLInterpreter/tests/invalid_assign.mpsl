@@ -1,4 +1,4 @@
-var test ->
+0 ->
 
 # @EXPECT ERROR
-# [L1, C11] Expected expression.
+# [L1, C4] Expected variable name.
