@@ -5,4 +5,4 @@ fn
 var b
 
 # @EXPECT ERROR
-# [L3, C3] Expected function name.
+# [L3, C2] Expected function name.

@@ -5,4 +5,4 @@ fn @test
 var x
 
 # @EXPECT ERROR
-# [L3, C9] Expected parameter name, '{', or '=>'.
+# [L3, C8] Expected parameter name, '{', or '=>'.

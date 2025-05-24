@@ -66,6 +66,7 @@ internal static class Tokenizer
     public static IList<Token> GetTokens(string code, out IList<TokenizerError> errors)
     {
         Reset();
+        code = code.ReplaceLineEndings("\n");
         Tokenizer.code = code;
 
         while (current < code.Length)
