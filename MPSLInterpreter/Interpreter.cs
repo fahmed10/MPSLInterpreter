@@ -454,6 +454,11 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitContextValue(Expression.ContextValue expression)
     {
+        if (environment.contextValue is Invalid)
+        {
+            ReportError(expression.token, "'@' has no value here.");
+        }
+
         return environment.contextValue;
     }
 

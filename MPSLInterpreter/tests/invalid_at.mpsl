@@ -1,0 +1,7 @@
+match 0 {
+    @ = 0 => @
+} -> var test
+@print test
+
+# @EXPECT ERROR
+# [L2, C14] Runtime Error: '@' has no value here.
