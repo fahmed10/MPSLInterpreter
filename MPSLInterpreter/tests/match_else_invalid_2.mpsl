@@ -1,0 +1,11 @@
+match 0 {
+    @ = -1 => 0
+    else => 3
+    @ = 1 { { } }
+    @ = 2 { 34 -> var y }
+}
+
+var b
+
+# @EXPECT ERROR
+# [L4, C5] Expected '}'. An else match must be the last match in a match expression.

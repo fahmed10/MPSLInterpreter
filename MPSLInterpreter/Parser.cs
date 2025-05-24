@@ -366,10 +366,7 @@ internal static class Parser
             }
             catch (ParseException)
             {
-                while (current < tokens.Count && !MatchNextToken(CURLY_RIGHT))
-                {
-                    ReadToken();
-                }
+                ReadToPairClosing(CURLY_LEFT, CURLY_RIGHT);
             }
         }
 
@@ -447,6 +444,23 @@ internal static class Parser
             }
 
             ReadToken();
+        }
+    }
+
+    private static void ReadToPairClosing(TokenType pairStart, TokenType pairEnd)
+    {
+        int pairDepth = 1;
+        while (current < tokens.Count && pairDepth > 0)
+        {
+            Token token = ReadToken();
+            if (token.Type == pairStart)
+            {
+                pairDepth++;
+            }
+            else if (token.Type == pairEnd)
+            {
+                pairDepth--;
+            }
         }
     }
 
