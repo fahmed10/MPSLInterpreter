@@ -8,12 +8,17 @@
 		<PublishAot>true</PublishAot>
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<Configurations>Debug;Release;Test</Configurations>
+		<ApplicationIcon>mpsl-logo.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
 		<Content Include="tests\**">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="mpsl-logo.ico" />
 	</ItemGroup>
 
 </Project>
