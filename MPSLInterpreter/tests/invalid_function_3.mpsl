@@ -1,0 +1,8 @@
+var y
+
+fn @test
+
+var x
+
+# @EXPECT ERROR
+# [L3, C9] Expected parameter name, '{', or '=>'.

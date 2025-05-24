@@ -3,4 +3,4 @@ each value : [1, 4] {}
 @print value
 
 # @EXPECT ERROR
-# [L3, C13] Runtime Error: Undefined variable 'value'.
+# [L3, C12] Runtime Error: Undefined variable 'value'.

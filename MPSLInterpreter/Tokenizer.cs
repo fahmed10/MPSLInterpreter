@@ -209,8 +209,8 @@ internal static class Tokenizer
             }
 
             line++;
-            lastLine = current;
             current++;
+            lastLine = current;
         }
         else if (c is ' ' or '\r' or '\t')
         {

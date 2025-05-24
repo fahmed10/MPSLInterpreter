@@ -1,0 +1,8 @@
+var n
+
+fn
+
+var b
+
+# @EXPECT ERROR
+# [L3, C3] Expected function name.

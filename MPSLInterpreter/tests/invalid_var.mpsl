@@ -1,0 +1,4 @@
+var
+
+# @EXPECT ERROR
+# [L1, C3] Expected variable name.

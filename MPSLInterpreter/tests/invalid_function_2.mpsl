@@ -1,0 +1,8 @@
+var a
+
+fn @
+
+var b
+
+# @EXPECT ERROR
+# [L3, C4] Expected function name after '@' character.

@@ -2,4 +2,4 @@
 "a" -> str[1]
 
 # @EXPECT ERROR
-# [L2, C12] Runtime Error: Only arrays can be assigned to with an access expression.
+# [L2, C11] Runtime Error: Only arrays can be assigned to with an access expression.

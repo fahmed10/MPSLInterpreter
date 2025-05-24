@@ -1,0 +1,4 @@
+var test ->
+
+# @EXPECT ERROR
+# [L1, C11] Expected expression.

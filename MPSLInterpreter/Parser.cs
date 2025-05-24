@@ -360,7 +360,17 @@ internal static class Parser
         if (PreviousToken().Type == ELSE)
         {
             elseStatement = StatementOrBlockRule();
-            RequireMatchNext(CURLY_RIGHT, "Expected '}'. An else match must be the last match statement in a match expression.");
+            try
+            {
+                RequireMatchNext(CURLY_RIGHT, "Expected '}'. An else match must be the last match in a match expression.");
+            }
+            catch (ParseException)
+            {
+                while (current < tokens.Count && !MatchNextToken(CURLY_RIGHT))
+                {
+                    ReadToken();
+                }
+            }
         }
 
         Token end = PreviousToken();
@@ -370,10 +380,19 @@ internal static class Parser
     private static Statement.FunctionDeclaration FunctionRule()
     {
         Token fnToken = PreviousToken();
-        Token name = RequireMatchNext(COMMAND, "Function names must start with an '@' character.");
+        Token name = RequireMatchNext(COMMAND, "Function names must start with an '@' character.", new() {
+            { AT, "Expected function name after '@' character." },
+            { EOL, "Expected function name." },
+            { EOF, "Expected function name." }
+        });
         List<Token> parameters = [];
 
-        if (PeekToken().Type is not CURLY_LEFT and not THICK_ARROW)
+        if (IsNextToken(EOL, EOF))
+        {
+            throw ReportError(PeekToken(), "Expected parameter name, '{', or '=>'.");
+        }
+
+        if (PeekToken().Type is not (CURLY_LEFT or THICK_ARROW))
         {
             do
             {
@@ -438,13 +457,18 @@ internal static class Parser
         return token;
     }
 
-    private static Token RequireMatchNext(TokenType type, string errorMessage) => RequireMatchNext([type], errorMessage);
+    private static Token RequireMatchNext(TokenType type, string errorMessage, Dictionary<TokenType, string>? customErrorMessages = null) => RequireMatchNext([type], errorMessage, customErrorMessages);
 
-    private static Token RequireMatchNext(TokenType[] types, string errorMessage)
+    private static Token RequireMatchNext(TokenType[] types, string errorMessage, Dictionary<TokenType, string>? customErrorMessages = null)
     {
         if (!MatchNextToken(types))
         {
-            ReportError(PeekToken(), errorMessage);
+            string? customError = null;
+            if (current < tokens.Count)
+            {
+                customErrorMessages?.TryGetValue(PeekToken().Type, out customError);
+            }
+            throw ReportError(PeekToken(), customError ?? errorMessage);
         }
 
         return PreviousToken();
