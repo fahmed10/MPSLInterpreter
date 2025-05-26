@@ -123,10 +123,6 @@ internal static class Tokenizer
                 AddToken(STRING, CurrentString[1..^1]);
             }
         }
-        else if (c is '<' && !IsLastToken(IDENTIFIER, NUMBER, STRING, PAREN_RIGHT, SQUARE_RIGHT, AT))
-        {
-            ReadInterpolated('>', '{', '}', ANGLE_LEFT, ANGLE_RIGHT);
-        }
         else if (char.IsAsciiLetter(c) || c is '_')
         {
             AdvanceWhile(c => char.IsAsciiLetterOrDigit(c) || c is '_');
