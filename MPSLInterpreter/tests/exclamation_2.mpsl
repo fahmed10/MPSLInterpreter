@@ -1,0 +1,7 @@
+fn @mul a, b => a * b
+
+@print @mul 2, 3!! + @mul 2, 2
+
+# @EXPECT ERROR
+# 6
+# [L3, C20] Runtime Error: Operands must be two numbers or two strings.

@@ -1,0 +1,12 @@
+fn @mul a, b => a * b
+
+@print @mul 2, 3 + @mul 2, 2
+@print @mul 2, 3! + @mul 2, 2
+@print @mul 2, 3! + @mul 2, 2!
+@print @mul 2, 3! + @mul 2, 2!!
+
+# @EXPECT RUN
+# 14
+# 10
+# 10
+# 10

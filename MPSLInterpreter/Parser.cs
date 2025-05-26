@@ -406,7 +406,7 @@ internal static class Parser
         Token command = PreviousToken();
         List<Expression> args = [];
 
-        while (!MatchNextToken(EXCLAMATION) && !IsNextToken(CURLY_LEFT, EOL, EOF))
+        while (!(IsNextNextToken([.. binaryOperators.SelectMany(t => t)]) && MatchNextToken(EXCLAMATION)) && !IsNextToken(CURLY_LEFT, EOL, EOF))
         {
             args.Add(NonAssignExpressionRule());
             if (!MatchNextToken(COMMA))
@@ -509,6 +509,16 @@ internal static class Parser
         }
 
         return types.Any(type => type == PeekToken().Type);
+    }
+
+    private static bool IsNextNextToken(params TokenType[] types)
+    {
+        if (current + 1 >= tokens.Count)
+        {
+            return false;
+        }
+
+        return types.Any(type => type == tokens[current + 1].Type);
     }
 
     private static bool MatchNextToken(params TokenType[] types)
