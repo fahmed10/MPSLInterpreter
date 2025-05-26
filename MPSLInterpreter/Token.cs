@@ -1,11 +1,11 @@
 ﻿namespace MPSLInterpreter;
 
-public class Token(TokenType Type, string Lexeme, uint Line, uint Column, int Start, object? Value = null)
+public class Token(TokenType Type, string Lexeme, int Line, int Column, int Start, object? Value = null)
 {
     public TokenType Type { get; } = Type;
     public string Lexeme { get; } = Lexeme;
-    public uint Line { get; } = Line;
-    public uint Column { get; } = Column;
+    public int Line { get; } = Line;
+    public int Column { get; } = Column;
     public int Start { get; } = Start;
     public int End => Start + Lexeme.Length;
     public object? Value { get; } = Value;
