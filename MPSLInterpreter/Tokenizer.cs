@@ -7,8 +7,8 @@ public record class TokenizerError(int Line, int Column, string Message);
 internal static class Tokenizer
 {
     private static string code = "";
-    private static readonly List<Token> tokens = [];
-    private static readonly List<TokenizerError> errors = [];
+    private static List<Token> tokens = [];
+    private static List<TokenizerError> errors = [];
     private static int start;
     private static int current;
     private static int line;
@@ -57,8 +57,8 @@ internal static class Tokenizer
 
     private static void Reset()
     {
-        tokens.Clear();
-        errors.Clear();
+        tokens = [];
+        errors = [];
         start = current = line = lastLine = 0;
         line++;
     }

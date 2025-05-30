@@ -8,7 +8,7 @@ internal class ParseException : Exception;
 internal static class Parser
 {
     private static IList<Token> tokens = null!;
-    private static readonly List<ParserError> errors = [];
+    private static List<ParserError> errors = [];
     private static int current;
 
     private static readonly TokenType[][] binaryOperators = [
@@ -23,7 +23,7 @@ internal static class Parser
     public static IList<Statement> Parse(IList<Token> tokens, out IList<ParserError> errors)
     {
         Parser.tokens = tokens;
-        Parser.errors.Clear();
+        Parser.errors = [];
         current = 0;
 
         List<Statement> statements = [];
