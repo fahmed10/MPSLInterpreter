@@ -1,0 +1,18 @@
+3 -> var x
+
+{
+    "a" -> var x
+    if true {
+        -1 -> var x
+        @print x
+    }
+
+    @print x
+}
+
+@print x
+
+# @EXPECT RUN
+# -1
+# a
+# 3

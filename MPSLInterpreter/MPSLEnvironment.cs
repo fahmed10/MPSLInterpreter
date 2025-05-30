@@ -3,24 +3,12 @@
 /// <summary>
 /// Stores variables and functions that were declared in its block in MPSL code.
 /// </summary>
-public class MPSLEnvironment
+/// <param name="parent">The parent of this environment.</param>
+public class MPSLEnvironment(MPSLEnvironment? parent = null)
 {
-    /// <summary>
-    /// The parent of this environment.
-    /// </summary>
-    public MPSLEnvironment? parent;
-    Dictionary<string, object?> variables = new();
-    Dictionary<string, ICallable> functions = new();
+    readonly Dictionary<string, object?> variables = [];
+    readonly Dictionary<string, ICallable> functions = [];
     internal object? contextValue = Invalid.Value;
-
-    /// <summary>
-    /// Initializes a new instance of the <c>MPSLEnvironment</c> class.
-    /// </summary>
-    /// <param name="parent">The parent of this environment.</param>
-    public MPSLEnvironment(MPSLEnvironment? parent = null)
-    {
-        this.parent = parent;
-    }
 
     internal void AddEnvironment(Token useToken, MPSLEnvironment other)
     {
@@ -85,13 +73,13 @@ public class MPSLEnvironment
     {
         string functionName = (string)name.Value!;
 
-        if (functions.ContainsKey(functionName))
+        if (functions.TryGetValue(functionName, out ICallable? function))
         {
-            return functions[functionName];
+            return function;
         }
-        else if (BuiltInFunctions.functions.ContainsKey(functionName))
+        else if (BuiltInFunctions.functions.TryGetValue(functionName, out NativeFunction? nativeFunction))
         {
-            return BuiltInFunctions.functions[functionName];
+            return nativeFunction;
         }
         else if (parent != null)
         {
@@ -136,9 +124,9 @@ public class MPSLEnvironment
 
     public object? GetVariableValue(string name)
     {
-        if (variables.ContainsKey(name))
+        if (variables.TryGetValue(name, out object? value))
         {
-            return variables[name];
+            return value;
         }
         else if (parent != null)
         {
@@ -150,9 +138,9 @@ public class MPSLEnvironment
 
     internal object? GetVariableValue(Token name)
     {
-        if (variables.ContainsKey(name.Lexeme))
+        if (variables.TryGetValue(name.Lexeme, out object? value))
         {
-            return variables[name.Lexeme];
+            return value;
         }
         else if (parent != null)
         {
