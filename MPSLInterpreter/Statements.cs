@@ -1,6 +1,6 @@
 ﻿namespace MPSLInterpreter;
 
-public abstract record class Statement
+public abstract record class Statement : INode
 {
     public abstract int Start { get; }
     public abstract int End { get; }
