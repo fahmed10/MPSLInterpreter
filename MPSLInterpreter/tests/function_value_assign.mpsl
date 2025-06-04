@@ -1,0 +1,9 @@
+fn @get_value => -1
+@get_value -> var value
+@print value
+@get_value! -> value
+@print value
+
+# @EXPECT RUN
+# -1
+# -1

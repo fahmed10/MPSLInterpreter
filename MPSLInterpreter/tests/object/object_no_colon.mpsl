@@ -1,0 +1,4 @@
+(first: 1, second: "2", third) -> var obj
+
+# @EXPECT ERROR
+# [L1, C30] Expected ':' after key.

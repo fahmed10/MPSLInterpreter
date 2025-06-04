@@ -8,6 +8,6 @@ public class MPSLArray : List<object?>
 
     public override string ToString()
     {
-        return $"[{this.Select(Interpreter.ToMPSLString).Aggregate((a, b) => $"{a}, {b}")}]";
+        return $"[{string.Join(", ", this.Select(Interpreter.ToMPSLDebugString))}]";
     }
 }

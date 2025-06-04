@@ -20,6 +20,8 @@ internal static class Parser
         [ASTERISK, SLASH], // Factor
     ];
 
+    private static readonly TokenType[] literalTokens = [NUMBER, STRING, TRUE, FALSE, NULL];
+
     public static IList<Statement> Parse(IList<Token> tokens, out IList<ParserError> errors)
     {
         Parser.tokens = tokens;
@@ -133,7 +135,7 @@ internal static class Parser
         {
             RequireMatchNext(THICK_ARROW, "Expected '=>' or '{'.");
             Statement statement = StatementRule();
-            block = new Expression.Block([statement], statement.Start, statement.End);
+            block = new Expression.Block([statement], statement.FirstToken, statement.End);
         }
 
         while (MatchNextToken(EOL)) { }
@@ -158,7 +160,7 @@ internal static class Parser
             ReportError(PeekToken(), "Expected '}'.");
         }
 
-        return new Expression.Block(statements, start.Start, PreviousToken().End);
+        return new Expression.Block(statements, start, PreviousToken().End);
     }
 
     private static Statement.ExpressionStatement ExpressionStatementRule()
@@ -189,7 +191,7 @@ internal static class Parser
             if (MatchNextToken(BREAK))
             {
                 IList<Statement> statements = [new Statement.ExpressionStatement(expression), new Statement.Break(PreviousToken())];
-                return new Expression.Block(statements, statements[0].Start, statements[1].End);
+                return new Expression.Block(statements, statements[0].FirstToken, statements[1].End);
             }
             else if (MatchNextToken(SQUARE_LEFT))
             {
@@ -267,21 +269,34 @@ internal static class Parser
 
     private static Expression PrimaryRule()
     {
+        if (IsNextToken(literalTokens))
+        {
+            return LiteralRule();
+        }
+
+        return ReadToken().Type switch
+        {
+            IDENTIFIER => new Expression.Variable(PreviousToken()),
+            AT => new Expression.ContextValue(PreviousToken()),
+            SQUARE_LEFT => ArrayLiteralRule(),
+            COMMAND => CallRule(),
+            MATCH => MatchRule(),
+            PAREN_LEFT when IsNextToken(DOT_DOT, PAREN_RIGHT) || (IsNextToken([..literalTokens, IDENTIFIER]) && IsNextNextToken(COLON)) => ObjectLiteralRule(),
+            PAREN_LEFT => GroupingRule(),
+            INTERPOLATED_STRING_MARKER => InterpolatedStringRule(),
+            _ => throw ReportError(PreviousToken(), "Expected expression.")
+        };
+    }
+
+    private static Expression.Literal LiteralRule()
+    {
         return ReadToken().Type switch
         {
             FALSE => new Expression.Literal(false, PreviousToken()),
             TRUE => new Expression.Literal(true, PreviousToken()),
             NULL => new Expression.Literal(null, PreviousToken()),
             NUMBER or STRING => new Expression.Literal(PreviousToken().Value, PreviousToken()),
-            IDENTIFIER => new Expression.Variable(PreviousToken()),
-            AT => new Expression.ContextValue(PreviousToken()),
-            SQUARE_LEFT => ArrayLiteralRule(),
-            COMMAND => CallRule(),
-            MATCH => MatchRule(),
-            PAREN_LEFT => GroupingRule(),
-            INTERPOLATED_STRING_MARKER => InterpolatedStringRule(),
-            EOF => throw ReportError(PreviousToken(), "Expected expression."),
-            _ => throw ReportError(PeekToken(), "Expected expression.")
+            _ => throw ReportError(PreviousToken(), "Expected literal value.")
         };
     }
 
@@ -313,6 +328,50 @@ internal static class Parser
         return new Expression.Grouping(expression, start, PreviousToken());
     }
 
+    private static Expression.Object ObjectLiteralRule()
+    {
+        Token start = PreviousToken();
+
+        if (MatchNextToken(PAREN_RIGHT))
+        {
+            return new Expression.Object(start, [], PreviousToken());
+        }
+
+        List<Expression.Object.Item> items = [];
+
+        do
+        {
+            if (MatchNextToken(DOT_DOT))
+            {
+                items.Add(new Expression.Object.Item.Spread(ExpressionRule()));
+            }
+            else
+            {
+                Expression.Literal keyExpression;
+
+                if (MatchNextToken(IDENTIFIER))
+                {
+                    keyExpression = new Expression.Literal(PreviousToken().Lexeme, PreviousToken());
+                }
+                else if (IsNextToken(literalTokens))
+                {
+                    keyExpression = LiteralRule();
+                }
+                else
+                {
+                    throw ReportError(ReadToken(), "Expected object key name.");
+                }
+
+                RequireMatchNext(COLON, "Expected ':' after key.");
+                items.Add(new Expression.Object.Item.KeyValue(keyExpression, ExpressionRule()));
+            }
+        }
+        while (MatchNextToken(COMMA));
+
+        Token end = RequireMatchNext(PAREN_RIGHT, "Expected ')'.");
+        return new Expression.Object(start, items, end);
+    }
+
     private static Expression.Array ArrayLiteralRule()
     {
         Token start = PreviousToken();
@@ -338,7 +397,6 @@ internal static class Parser
         while (MatchNextToken(COMMA));
 
         Token end = RequireMatchNext(SQUARE_RIGHT, "Expected ']'.");
-
         return new Expression.Array(start, items, end);
     }
 
@@ -406,7 +464,7 @@ internal static class Parser
         Token command = PreviousToken();
         List<Expression> args = [];
 
-        while (!(IsNextNextToken([.. binaryOperators.SelectMany(t => t)]) && MatchNextToken(EXCLAMATION)) && !IsNextToken(CURLY_LEFT, EOL, EOF))
+        while (!(IsNextNextToken([.. binaryOperators.SelectMany(t => t), ARROW]) && MatchNextToken(EXCLAMATION)) && !IsNextToken(CURLY_LEFT, ARROW, EOL, EOF))
         {
             args.Add(NonAssignExpressionRule());
             if (!MatchNextToken(COMMA))

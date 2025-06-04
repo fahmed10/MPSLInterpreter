@@ -1,0 +1,4 @@
+(first: 1, second: "2", ) -> var obj
+
+# @EXPECT ERROR
+# [L1, C25] Expected object key name.

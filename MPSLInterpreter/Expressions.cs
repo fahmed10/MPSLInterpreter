@@ -4,6 +4,7 @@ public abstract record class Expression : INode
 {
     public abstract int Start { get; }
     public abstract int End { get; }
+    public abstract Token FirstToken { get; }
 
     public interface IVisitor<T>
     {
@@ -19,6 +20,7 @@ public abstract record class Expression : INode
         T VisitContextValue(ContextValue expression);
         T VisitBlock(Block expression);
         T VisitArray(Array expression);
+        T VisitObject(Object expression);
         T VisitAccess(Access expression);
         T VisitPush(Push expression);
         T VisitInterpolatedString(InterpolatedString expression);
@@ -38,6 +40,7 @@ public abstract record class Expression : INode
         void VisitContextValue(ContextValue expression) { }
         void VisitBlock(Block expression) { }
         void VisitArray(Array expression) { }
+        void VisitObject(Object expression) { }
         void VisitAccess(Access expression) { }
         void VisitPush(Push expression) { }
         void VisitInterpolatedString(InterpolatedString expression) { }
@@ -47,6 +50,7 @@ public abstract record class Expression : INode
     {
         public override int Start => left.Start;
         public override int End => right.End;
+        public override Token FirstToken => left.FirstToken;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitBinary(this);
         public override void Accept(IVisitor visitor) => visitor.VisitBinary(this);
@@ -56,6 +60,7 @@ public abstract record class Expression : INode
     {
         public override int Start => operatorToken.Start;
         public override int End => right.End;
+        public override Token FirstToken => operatorToken;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitUnary(this);
         public override void Accept(IVisitor visitor) => visitor.VisitUnary(this);
@@ -65,6 +70,7 @@ public abstract record class Expression : INode
     {
         public override int Start => token.Start;
         public override int End => token.End;
+        public override Token FirstToken => token;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitLiteral(this);
         public override void Accept(IVisitor visitor) => visitor.VisitLiteral(this);
@@ -74,6 +80,7 @@ public abstract record class Expression : INode
     {
         public override int Start => start.Start;
         public override int End => end.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGrouping(this);
         public override void Accept(IVisitor visitor) => visitor.VisitGrouping(this);
@@ -83,6 +90,7 @@ public abstract record class Expression : INode
     {
         public override int Start => name.Start;
         public override int End => name.End;
+        public override Token FirstToken => name;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitVariable(this);
         public override void Accept(IVisitor visitor) => visitor.VisitVariable(this);
@@ -91,6 +99,7 @@ public abstract record class Expression : INode
     {
         public override int Start => start.Start;
         public override int End => name.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitVariableDeclaration(this);
         public override void Accept(IVisitor visitor) => visitor.VisitVariableDeclaration(this);
@@ -99,6 +108,7 @@ public abstract record class Expression : INode
     {
         public override int Start => value.Start;
         public override int End => target.End;
+        public override Token FirstToken => value.FirstToken;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitAssign(this);
         public override void Accept(IVisitor visitor) => visitor.VisitAssign(this);
@@ -108,6 +118,7 @@ public abstract record class Expression : INode
     {
         public override int Start => callee.Start;
         public override int End => arguments.LastOrDefault()?.End ?? callee.End;
+        public override Token FirstToken => callee;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitCall(this);
         public override void Accept(IVisitor visitor) => visitor.VisitCall(this);
@@ -117,6 +128,7 @@ public abstract record class Expression : INode
     {
         public override int Start => start.Start;
         public override int End => end.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitMatch(this);
         public override void Accept(IVisitor visitor) => visitor.VisitMatch(this);
@@ -125,14 +137,16 @@ public abstract record class Expression : INode
     {
         public override int Start => token.Start;
         public override int End => token.End;
+        public override Token FirstToken => token;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitContextValue(this);
         public override void Accept(IVisitor visitor) => visitor.VisitContextValue(this);
     }
-    public record Block(IList<Statement> statements, int start, int end) : Expression
+    public record Block(IList<Statement> statements, Token start, int end) : Expression
     {
-        public override int Start => start;
+        public override int Start => start.Start;
         public override int End => end;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitBlock(this);
         public override void Accept(IVisitor visitor) => visitor.VisitBlock(this);
@@ -141,14 +155,31 @@ public abstract record class Expression : INode
     {
         public override int Start => start.Start;
         public override int End => end.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitArray(this);
         public override void Accept(IVisitor visitor) => visitor.VisitArray(this);
+    }
+    public record Object(Token start, IList<Object.Item> items, Token end) : Expression
+    {
+        public record Item(Expression valueExpression)
+        {
+            public record class KeyValue(Literal keyExpression, Expression valueExpression) : Item(valueExpression);
+            public record class Spread(Expression valueExpression) : Item(valueExpression);
+        }
+
+        public override int Start => start.Start;
+        public override int End => end.End;
+        public override Token FirstToken => start;
+
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitObject(this);
+        public override void Accept(IVisitor visitor) => visitor.VisitObject(this);
     }
     public record InterpolatedString(IList<Expression> expressions, Token start, Token end) : Expression
     {
         public override int Start => start.Start;
         public override int End => end.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitInterpolatedString(this);
         public override void Accept(IVisitor visitor) => visitor.VisitInterpolatedString(this);
@@ -157,6 +188,7 @@ public abstract record class Expression : INode
     {
         public override int Start => expression.Start;
         public override int End => end.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitAccess(this);
         public override void Accept(IVisitor visitor) => visitor.VisitAccess(this);
@@ -165,6 +197,7 @@ public abstract record class Expression : INode
     {
         public override int Start => value.Start;
         public override int End => end.End;
+        public override Token FirstToken => value.FirstToken;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitPush(this);
         public override void Accept(IVisitor visitor) => visitor.VisitPush(this);

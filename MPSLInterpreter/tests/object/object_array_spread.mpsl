@@ -1,0 +1,5 @@
+(first: 1, second: "2", ..[]) -> var obj
+@print obj
+
+# @EXPECT ERROR
+# [L1, C27] Runtime Error: Can only spread object types in an object expression.

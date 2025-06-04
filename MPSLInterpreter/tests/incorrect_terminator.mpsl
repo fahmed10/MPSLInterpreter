@@ -1,0 +1,4 @@
+3 -> var test;
+
+# @EXPECT ERROR
+# [L1, C14] Unknown character.

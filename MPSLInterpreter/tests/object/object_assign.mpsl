@@ -1,0 +1,8 @@
+(first: 1, second: "2") -> var obj
+@print obj
+false -> obj["first"]
+@print obj
+
+# @EXPECT RUN
+# ("first": 1, "second": "2")
+# ("first": False, "second": "2")

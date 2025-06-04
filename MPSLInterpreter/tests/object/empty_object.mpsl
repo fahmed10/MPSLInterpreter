@@ -1,0 +1,5 @@
+() -> var emptyObject
+@print emptyObject
+
+# @EXPECT RUN
+# ()

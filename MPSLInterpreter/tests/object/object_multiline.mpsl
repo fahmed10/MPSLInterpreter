@@ -1,0 +1,23 @@
+(
+
+    data: 1,
+
+    data2: 2
+
+) -> var obj
+@print obj
+
+(data: 1,
+data2: 2) -> obj
+@print obj
+
+(
+    data: 1,
+    data2: 2
+) -> obj
+@print obj
+
+# @EXPECT RUN
+# ("data": 1, "data2": 2)
+# ("data": 1, "data2": 2)
+# ("data": 1, "data2": 2)

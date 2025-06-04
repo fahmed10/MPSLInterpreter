@@ -1,0 +1,5 @@
+(false: 10, "str": "123", 40: true, "o": null) -> var obj
+@print obj
+
+# @EXPECT RUN
+# (False: 10, "str": "123", 40: True, "o": null)

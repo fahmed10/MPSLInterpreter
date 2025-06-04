@@ -1,0 +1,5 @@
+(test: 3) -> var obj
+@print obj["first"]
+
+# @EXPECT ERROR
+# [L2, C11] Runtime Error: Object does not contain key 'first'.

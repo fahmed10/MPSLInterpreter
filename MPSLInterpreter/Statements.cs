@@ -4,6 +4,7 @@ public abstract record class Statement : INode
 {
     public abstract int Start { get; }
     public abstract int End { get; }
+    public abstract Token FirstToken { get; }
 
     public interface IVisitor<T>
     {
@@ -31,6 +32,7 @@ public abstract record class Statement : INode
     {
         public override int Start => expression.Start;
         public override int End => expression.End;
+        public override Token FirstToken => expression.FirstToken;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitExpressionStatement(this);
         public override void Accept(IVisitor visitor) => visitor.VisitExpressionStatement(this);
@@ -40,6 +42,7 @@ public abstract record class Statement : INode
     {
         public override int Start => start.Start;
         public override int End => elseBlock?.End ?? statements.Last().body.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitIf(this);
         public override void Accept(IVisitor visitor) => visitor.VisitIf(this);
@@ -48,6 +51,7 @@ public abstract record class Statement : INode
     {
         public override int Start => start.Start;
         public override int End => body.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitWhile(this);
         public override void Accept(IVisitor visitor) => visitor.VisitWhile(this);
@@ -56,6 +60,7 @@ public abstract record class Statement : INode
     {
         public override int Start => start.Start;
         public override int End => body.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitEach(this);
         public override void Accept(IVisitor visitor) => visitor.VisitEach(this);
@@ -64,6 +69,7 @@ public abstract record class Statement : INode
     {
         public override int Start => start.Start;
         public override int End => body.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitFunctionDeclaration(this);
         public override void Accept(IVisitor visitor) => visitor.VisitFunctionDeclaration(this);
@@ -72,6 +78,7 @@ public abstract record class Statement : INode
     {
         public override int Start => keyword.Start;
         public override int End => keyword.End;
+        public override Token FirstToken => keyword;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitBreak(this);
         public override void Accept(IVisitor visitor) => visitor.VisitBreak(this);
@@ -80,6 +87,7 @@ public abstract record class Statement : INode
     {
         public override int Start => start.Start;
         public override int End => path.End;
+        public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitUse(this);
         public override void Accept(IVisitor visitor) => visitor.VisitUse(this);

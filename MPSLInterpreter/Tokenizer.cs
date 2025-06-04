@@ -174,6 +174,12 @@ internal static class Tokenizer
         else if (operators.TryGetValue(c, out TokenType type))
         {
             current++;
+
+            if (type is PAREN_RIGHT or SQUARE_RIGHT && IsLastToken(EOL))
+            {
+                tokens.RemoveAt(tokens.Count - 1);
+            }
+
             AddToken(type);
         }
         else if (c is '#')
@@ -215,8 +221,8 @@ internal static class Tokenizer
         }
         else
         {
-            ReportError("Unknown character.");
             current++;
+            ReportError("Unknown character.");
         }
     }
 

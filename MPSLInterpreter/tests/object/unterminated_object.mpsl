@@ -1,0 +1,4 @@
+(first: 1, second: 2
+
+# @EXPECT ERROR
+# [L1, C20] Expected ')'.

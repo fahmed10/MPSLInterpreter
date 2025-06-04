@@ -1,0 +1,8 @@
+(first: 1, second: "2") -> var obj
+@print obj
+false -> obj["third"]
+@print obj
+
+# @EXPECT ERROR
+# ("first": 1, "second": "2")
+# [L3, C13] Runtime Error: Object does not contain key 'third'.

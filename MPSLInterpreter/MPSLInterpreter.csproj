@@ -7,7 +7,7 @@
 		<Nullable>enable</Nullable>
 		<PublishAot>true</PublishAot>
 		<InvariantGlobalization>true</InvariantGlobalization>
-		<Configurations>Debug;Release;Test</Configurations>
+		<Configurations>Debug;Release</Configurations>
 		<ApplicationIcon>mpsl-logo.ico</ApplicationIcon>
 	</PropertyGroup>
 

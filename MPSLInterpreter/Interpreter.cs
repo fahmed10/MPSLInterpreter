@@ -126,10 +126,15 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public static string ToMPSLString(object? obj)
     {
+        return obj?.ToString() ?? "null";
+    }
+
+    public static string ToMPSLDebugString(object? obj)
+    {
         return obj switch
         {
-            null => "null",
-            _ => obj.ToString() ?? "null"
+            string => $"\"{ToMPSLString(obj)}\"",
+            _ => ToMPSLString(obj)
         };
     }
 
@@ -262,11 +267,28 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         }
         else if (expression.target is Expression.Access access)
         {
-            if (Evaluate(access.expression) is MPSLArray array)
+            object? value = Evaluate(access.expression);
+            if (value is MPSLArray array)
             {
                 int index = GetIndexValue(access);
                 environment.contextValue = array[index];
                 array[index] = Evaluate(expression.value);
+            }
+            else if (value is MPSLObject obj)
+            {
+                object? key = Evaluate(access.indexExpression);
+
+                if (key == null)
+                {
+                    ReportError(access.start, "Cannot index object with null key.");
+                }
+                if (!obj.TryGetValue(key, out object? keyValue))
+                {
+                    ReportError(access.start, $"Object does not contain key '{key}'.");
+                }
+
+                environment.contextValue = keyValue;
+                obj[key] = Evaluate(expression.value);
             }
             else
             {
@@ -495,6 +517,43 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         return array;
     }
 
+    public object? VisitObject(Expression.Object expression)
+    {
+        MPSLObject obj = [];
+
+        foreach (var item in expression.items)
+        {
+            object? value = Evaluate(item.valueExpression);
+            if (item is Expression.Object.Item.Spread)
+            {
+                if (value is MPSLObject o)
+                {
+                    foreach (var pair in o)
+                    {
+                        obj[pair.Key] = pair.Value;
+                    }
+                }
+                else
+                {
+                    ReportError(item.valueExpression.FirstToken, "Can only spread object types in an object expression.");
+                }
+            }
+            else if (item is Expression.Object.Item.KeyValue keyValueItem)
+            {
+                object? key = Evaluate(keyValueItem.keyExpression);
+
+                if (key == null)
+                {
+                    ReportError(keyValueItem.keyExpression.token, "Cannot have null key on object.");
+                }
+
+                obj[key] = value;
+            }
+        }
+
+        return obj;
+    }
+
     private int GetIndexValue(Expression.Access expression)
     {
         object? index = Evaluate(expression.indexExpression);
@@ -511,15 +570,29 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
     public object? VisitAccess(Expression.Access expression)
     {
         object? value = Evaluate(expression.expression);
-        int index = GetIndexValue(expression);
 
-        if (value is MPSLArray a)
+        if (value is MPSLArray array)
         {
-            return a[index];
+            return array[GetIndexValue(expression)];
         }
-        else if (value is string s)
+        else if (value is string str)
         {
-            return s[index].ToString();
+            return str[GetIndexValue(expression)].ToString();
+        }
+        else if (value is MPSLObject obj)
+        {
+            object? key = Evaluate(expression.indexExpression);
+
+            if (key == null)
+            {
+                ReportError(expression.start, "Cannot index object with null key.");
+            }
+            if (!obj.TryGetValue(key, out object? keyValue))
+            {
+                ReportError(expression.start, $"Object does not contain key '{key}'.");
+            }
+
+            return keyValue;
         }
         else
         {
