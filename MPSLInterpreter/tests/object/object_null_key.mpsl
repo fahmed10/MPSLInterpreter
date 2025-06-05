@@ -1,0 +1,4 @@
+(key: 0, null: 1) -> var obj
+
+# @EXPECT ERROR
+# [L1, C13] Runtime Error: Cannot have null key on object.
