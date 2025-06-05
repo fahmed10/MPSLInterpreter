@@ -297,7 +297,7 @@ internal static class Parser
             MATCH => MatchRule(),
             PAREN_LEFT when IsNextToken(DOT_DOT, PAREN_RIGHT) || (IsNextToken([..literalTokens, IDENTIFIER]) && IsNextNextToken(COLON)) => ObjectLiteralRule(),
             PAREN_LEFT => GroupingRule(),
-            INTERPOLATED_STRING_MARKER => InterpolatedStringRule(),
+            INTERPOLATED_STRING_START => InterpolatedStringRule(),
             _ => throw ReportError(PreviousToken(), "Expected expression.")
         };
     }
@@ -319,7 +319,7 @@ internal static class Parser
         Token start = PreviousToken();
         List<Expression> expressions = [];
 
-        while (!MatchNextToken(INTERPOLATED_STRING_MARKER))
+        while (!MatchNextToken(INTERPOLATED_STRING_END))
         {
             if (MatchNextToken(INTERPOLATED_TEXT))
             {

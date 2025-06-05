@@ -1,0 +1,9 @@
+@"{@""}" -> var str1
+@"{"{"} {@"Test {@"" + @"{0}"} Test"}" -> var str2
+
+@print str1
+@print str2
+
+# @EXPECT RUN
+# 
+# { Test 0 Test

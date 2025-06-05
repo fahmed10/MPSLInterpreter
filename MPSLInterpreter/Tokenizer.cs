@@ -94,7 +94,7 @@ internal static class Tokenizer
             }
             else if (code[current] == '"')
             {
-                ReadInterpolated('"', '{', '}', INTERPOLATED_STRING_MARKER, INTERPOLATED_STRING_MARKER);
+                ReadInterpolated('"', '{', '}', INTERPOLATED_STRING_START, INTERPOLATED_STRING_END);
             }
             else if (!char.IsAsciiLetterOrDigit(code[current]))
             {

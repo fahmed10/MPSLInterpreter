@@ -1,0 +1,11 @@
+@"{{}}" -> var str1
+@"{{{str1}}}" -> var str2
+@"}}{1}  {{" -> var str3
+@print str1
+@print str2
+@print str3
+
+# @EXPECT RUN
+# {}
+# {{}}
+# }1  {
