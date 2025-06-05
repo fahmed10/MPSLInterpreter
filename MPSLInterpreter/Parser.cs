@@ -35,6 +35,10 @@ internal static class Parser
             try
             {
                 statements.Add(StatementRule());
+                if (statements.Last() is Statement.ExpressionStatement expressionStatement)
+                {
+                    RequireExpressionStatement(expressionStatement.expression);
+                }
             }
             catch (ParseException)
             {
@@ -149,6 +153,10 @@ internal static class Parser
         while (!MatchNextToken(CURLY_RIGHT) && !IsNextToken(EOF))
         {
             statements.Add(StatementRule());
+            if (!IsNextToken(CURLY_RIGHT, EOF) && statements.Last() is Statement.ExpressionStatement expressionStatement)
+            {
+                RequireExpressionStatement(expressionStatement.expression);
+            }
         }
 
         if (PreviousToken().Type != CURLY_RIGHT && IsNextToken(EOF))
@@ -165,6 +173,16 @@ internal static class Parser
         RequireEndOfLineOrFile("Expected <EOL>.");
 
         return new Statement.ExpressionStatement(expression);
+    }
+
+    private static void RequireExpressionStatement(Expression expression)
+    {
+        if (expression is Expression.Assign or Expression.Call or Expression.VariableDeclaration or Expression.Push or Expression.Block or Expression.Match)
+        {
+            return;
+        }
+
+        ReportError(expression.FirstToken, "Only assign, call, and match expressions can be used as statements.");
     }
 
     private static Expression ExpressionRule() => AssignmentRule();

@@ -1,6 +1,6 @@
 fn @mul a, b => a * b
 
-@print @mul 2, 3!! + @mul 2, 2
+@print @mul 2, 3!! + @mul 2, 2 -> var test
 
 # @EXPECT ERROR
 # 6

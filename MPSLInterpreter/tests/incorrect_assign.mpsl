@@ -1,0 +1,11 @@
+0 -> var test
+test = 1
+
+{
+    test = 2
+    test = 3
+}
+
+# @EXPECT ERROR
+# [L2, C4] Only assign, call, and match expressions can be used as statements.
+# [L5, C8] Only assign, call, and match expressions can be used as statements.
