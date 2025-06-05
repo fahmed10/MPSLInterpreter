@@ -41,7 +41,7 @@ internal static class Parser
                 Synchronize();
             }
 
-            while (MatchNextToken(EOL)) { }
+            MatchNextToken(EOL);
 
             if (current >= tokens.Count)
             {
@@ -56,8 +56,6 @@ internal static class Parser
 
     private static Statement StatementRule()
     {
-        while (MatchNextToken(EOL)) { }
-
         if (IsNextToken(VAR)) return new Statement.ExpressionStatement(VariableRule());
         if (MatchNextToken(IF)) return IfRule();
         if (MatchNextToken(WHILE)) return WhileRule();
@@ -138,7 +136,7 @@ internal static class Parser
             block = new Expression.Block([statement], statement.FirstToken, statement.End);
         }
 
-        while (MatchNextToken(EOL)) { }
+        MatchNextToken(EOL);
         return block;
     }
 
@@ -150,9 +148,7 @@ internal static class Parser
 
         while (!MatchNextToken(CURLY_RIGHT) && !IsNextToken(EOF))
         {
-            while (MatchNextToken(EOL)) { }
             statements.Add(StatementRule());
-            while (MatchNextToken(EOL)) { }
         }
 
         if (PreviousToken().Type != CURLY_RIGHT && IsNextToken(EOF))
