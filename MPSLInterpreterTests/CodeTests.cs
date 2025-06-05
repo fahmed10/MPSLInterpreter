@@ -16,11 +16,17 @@ public partial class CodeTests
     [TestCaseSource(nameof(RunTests), new object[] { "tests" })]
     public void TestCode(string filePath)
     {
+        TestCodeFile(filePath, true);
+        TestCodeFile(filePath, false);
+    }
+
+    private static void TestCodeFile(string filePath, bool trimCode)
+    {
         string code = File.ReadAllText(filePath);
         TextWriter standardOut = Console.Out;
         using StringWriter stringWriter = new();
         Console.SetOut(stringWriter);
-        bool success = MPSL.Run(StripTestComments().Replace(code, "").TrimEnd(), new()).Success;
+        bool success = MPSL.Run(trimCode ? StripTestComments().Replace(code, "").TrimEnd() : code, new()).Success;
         Console.SetOut(standardOut);
         string[] outputLines = stringWriter.ToString().Split(NEWLINE_STRINGS, StringSplitOptions.None);
 
@@ -58,6 +64,11 @@ public partial class CodeTests
                 Assert.Fail("Expected code to ERROR, but code ran.");
                 return;
             }
+            if (!trimCode)
+            {
+                outputLines = [.. outputLines.Select(line => StripErrorLocation().Replace(line, ""))];
+                lines = [.. lines.Select(line => StripErrorLocation().Replace(line, ""))];
+            }
 
             Assert.That(outputLines, Is.EquivalentTo(lines));
         }
@@ -69,4 +80,7 @@ public partial class CodeTests
 
     [GeneratedRegex(@"# @[A-Z]+(?:.|\n)+")]
     private static partial Regex StripTestComments();
+
+    [GeneratedRegex(@"\[L\d+, C\d+\]")]
+    private static partial Regex StripErrorLocation();
 }
