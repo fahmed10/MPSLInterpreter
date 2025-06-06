@@ -122,6 +122,6 @@ public static class BuiltInFunctions
     private static MPSLArray RegexMatches(string str, string pattern) => new(Regex.Matches(str, pattern).Select(m => m.Value));
     private static object? If(object? condition, object? ifTrue, object? ifFalse) => Interpreter.IsTruthy(condition) ? ifTrue : ifFalse;
     private static double Mod(double number, double by) => number % by;
-    private static void Run(string path, string args) => Process.Start(new ProcessStartInfo(path, args));
+    private static void Run(string path, MPSLArray args) => Process.Start(new ProcessStartInfo(path, args.Select(Interpreter.ToMPSLString)));
     private static void ToStr(object? value) => Interpreter.ToMPSLString(value);
 }
