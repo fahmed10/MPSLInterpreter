@@ -1,0 +1,14 @@
+fn @test {
+
+}
+
+fn @func x {
+    x
+}
+
+@test
+@test!
+@func 0
+@func 0!
+
+# @EXPECT RUN

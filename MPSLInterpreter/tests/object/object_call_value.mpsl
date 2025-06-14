@@ -1,0 +1,47 @@
+fn @value => 1
+
+[] -> var objects
+
+(first: @value, second: 3, third: @value) -> [objects]
+
+(
+    first: @value,
+    second: 3,
+    third: @value
+) -> [objects]
+
+(first: @mod 4, 2, second: 3, third: @mod 4, 2) -> [objects]
+
+(
+    first: @mod 4, 2,
+    second: 3,
+    third: @mod 4, 2
+) -> [objects]
+
+(first: @value!, second: 3, third: @value!) -> [objects]
+
+(
+    first: @value!,
+    second: 3,
+    third: @value!
+) -> [objects]
+
+(first: @mod 4, 2!, second: 3, third: @mod 4, 2!) -> [objects]
+
+(
+    first: @mod 4, 2!,
+    second: 3,
+    third: @mod 4, 2!
+) -> [objects]
+
+each obj : objects => @print obj
+
+# @EXPECT RUN
+# ("first": 1, "second": 3, "third": 1)
+# ("first": 0, "second": 3, "third": 0)
+# ("first": 1, "second": 3, "third": 1)
+# ("first": 0, "second": 3, "third": 0)
+# ("first": 1, "second": 3, "third": 1)
+# ("first": 0, "second": 3, "third": 0)
+# ("first": 1, "second": 3, "third": 1)
+# ("first": 0, "second": 3, "third": 0)

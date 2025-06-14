@@ -295,7 +295,7 @@ internal static class Parser
             SQUARE_LEFT => ArrayLiteralRule(),
             COMMAND => CallRule(),
             MATCH => MatchRule(),
-            PAREN_LEFT when IsNextToken(DOT_DOT, PAREN_RIGHT) || (IsNextToken([..literalTokens, IDENTIFIER]) && IsNextNextToken(COLON)) => ObjectLiteralRule(),
+            PAREN_LEFT when IsNextToken(DOT_DOT, PAREN_RIGHT) || (IsNextToken([.. literalTokens, IDENTIFIER]) && IsNextNextToken(COLON)) => ObjectLiteralRule(),
             PAREN_LEFT => GroupingRule(),
             INTERPOLATED_STRING_START => InterpolatedStringRule(),
             _ => throw ReportError(PreviousToken(), "Expected expression.")
@@ -478,12 +478,21 @@ internal static class Parser
         Token command = PreviousToken();
         List<Expression> args = [];
 
-        while (!(IsNextNextToken([.. binaryOperators.SelectMany(t => t), ARROW]) && MatchNextToken(EXCLAMATION)) && !IsNextToken(CURLY_LEFT, ARROW, EOL, EOF))
+        TokenType[] callEndTokens = [CURLY_LEFT, ARROW, EOL, EOF, COMMA, PAREN_RIGHT, SQUARE_RIGHT];
+
+        while (!(IsNextNextToken([.. binaryOperators.SelectMany(t => t), .. callEndTokens]) && MatchNextToken(EXCLAMATION)) && !IsNextToken(callEndTokens))
         {
             args.Add(NonAssignExpressionRule());
+
             if (!MatchNextToken(COMMA))
             {
                 MatchNextToken(EXCLAMATION);
+                break;
+            }
+
+            if (IsNextNextToken(COLON))
+            {
+                Backtrack();
                 break;
             }
         }
@@ -541,6 +550,11 @@ internal static class Parser
         Token token = tokens[current];
         current++;
         return token;
+    }
+
+    private static void Backtrack()
+    {
+        current--;
     }
 
     private static Token RequireMatchNext(TokenType type, string errorMessage, Dictionary<TokenType, string>? customErrorMessages = null) => RequireMatchNext([type], errorMessage, customErrorMessages);
