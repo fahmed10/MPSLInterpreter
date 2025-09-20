@@ -153,6 +153,8 @@ internal static class Parser
         while (!MatchNextToken(CURLY_RIGHT) && !IsNextToken(EOF))
         {
             statements.Add(StatementRule());
+            MatchNextToken(EOL);
+
             if (!IsNextToken(CURLY_RIGHT, EOF) && statements.Last() is Statement.ExpressionStatement expressionStatement)
             {
                 RequireExpressionStatement(expressionStatement.expression);
