@@ -1,0 +1,10 @@
+@print @str 0
+@print @str 1
+@print @str "test"
+@print @str true
+
+# @EXPECT RUN
+# 0
+# 1
+# test
+# True

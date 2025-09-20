@@ -123,5 +123,5 @@ public static class BuiltInFunctions
     private static object? If(object? condition, object? ifTrue, object? ifFalse) => Interpreter.IsTruthy(condition) ? ifTrue : ifFalse;
     private static double Mod(double number, double by) => number % by;
     private static void Run(string path, MPSLArray args) => Process.Start(new ProcessStartInfo(path, args.Select(Interpreter.ToMPSLString)));
-    private static void ToStr(object? value) => Interpreter.ToMPSLString(value);
+    private static string ToStr(object? value) => Interpreter.ToMPSLString(value);
 }
