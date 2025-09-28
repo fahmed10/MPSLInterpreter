@@ -136,8 +136,22 @@ internal static class Parser
         else
         {
             RequireMatchNext(THICK_ARROW, "Expected '=>' or '{'.");
-            Statement statement = StatementRule();
-            block = new Expression.Block([statement], statement.FirstToken, statement.End);
+
+            if (IsNextToken(VAR))
+            {
+                ReportError(PeekToken(), "Cannot declare variable inside '=>' block.");
+                Statement variableStatement = new Statement.ExpressionStatement(VariableRule());
+                block = new Expression.Block([variableStatement], variableStatement.FirstToken, variableStatement.End);
+            }
+            else
+            {
+                Statement statement = StatementRule();
+                if (statement is Statement.ExpressionStatement expressionStatement && expressionStatement.expression is Expression.Assign assign && assign.target is Expression.VariableDeclaration)
+                {
+                    ReportError(PreviousPreviousToken(), "Cannot declare variable inside '=>' block.");
+                }
+                block = new Expression.Block([statement], statement.FirstToken, statement.End);
+            }
         }
 
         MatchNextToken(EOL);
@@ -623,6 +637,11 @@ internal static class Parser
     private static Token PreviousToken()
     {
         return tokens[current - 1];
+    }
+
+    private static Token PreviousPreviousToken()
+    {
+        return tokens[current - 2];
     }
 
     private static ParseException ReportError(Token token, string message)

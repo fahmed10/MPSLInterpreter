@@ -222,7 +222,7 @@ internal static class Tokenizer
         else
         {
             current++;
-            ReportError("Unknown character.");
+            ReportError($"Unexpected character '{c}'.");
         }
     }
 

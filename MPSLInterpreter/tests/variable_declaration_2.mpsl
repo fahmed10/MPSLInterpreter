@@ -1,0 +1,9 @@
+var a
+
+fn @test => 0 -> var b
+
+fn @test2 => var c
+
+# @EXPECT ERROR
+# [L3, C22] Cannot declare variable inside '=>' block.
+# [L5, C16] Cannot declare variable inside '=>' block.

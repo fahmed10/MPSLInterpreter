@@ -113,7 +113,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
     {
         if (value is null)
         {
-            ReportError(token, "Value cannot be nil.");
+            ReportError(token, "Value cannot be null.");
         }
 
         if (value is string)

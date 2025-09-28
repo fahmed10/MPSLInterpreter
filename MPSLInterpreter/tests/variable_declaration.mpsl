@@ -8,6 +8,4 @@ var c
 
 { var d }
 
-fn @test => var e
-
 # @EXPECT RUN
