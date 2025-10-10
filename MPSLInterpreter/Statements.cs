@@ -87,10 +87,10 @@ public abstract record class Statement : INode
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitBreak(this);
         public override void Accept(IVisitor visitor) => visitor.VisitBreak(this);
     }
-    public record Use(Token start, Token path) : Statement
+    public record Use(Token start, Token target) : Statement
     {
         public override int Start => start.Start;
-        public override int End => path.End;
+        public override int End => target.End;
         public override Token FirstToken => start;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitUse(this);

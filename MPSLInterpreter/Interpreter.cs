@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using static MPSLInterpreter.TokenType;
 
@@ -645,11 +643,25 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitUse(Statement.Use statement)
     {
-        string path = Path.GetFullPath((string)statement.path.Value!);
+        if (statement.target.Type == IDENTIFIER)
+        {
+            if (StdLibrary.BuiltInGroups.groups.TryGetValue(statement.target.Lexeme, out MPSLGroup? group))
+            {
+                environment.AddEnvironment(statement.target, group.Environment);
+            }
+            else
+            {
+                ReportError(statement.target, $"Built-in group '{statement.target.Lexeme}' does not exist.");
+            }
+
+            return null;
+        }
+
+        string path = Path.GetFullPath((string)statement.target.Value!);
 
         if (!File.Exists(path))
         {
-            ReportError(statement.path, $"File {path} does not exist.");
+            ReportError(statement.target, $"File at '{path}' does not exist.");
         }
 
         MPSLEnvironment env = new();
@@ -657,11 +669,11 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
         if (env is null)
         {
-            ReportError(statement.path, $"Failed to use '{statement.path.Value}'.");
+            ReportError(statement.target, $"Failed to use '{statement.target.Value}'.");
             return null;
         }
 
-        environment.AddEnvironment(statement.path, env);
+        environment.AddEnvironment(statement.target, env);
         return null;
     }
 

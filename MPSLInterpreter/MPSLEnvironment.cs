@@ -82,13 +82,13 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
         {
             return result.function;
         }
-        else if (BuiltInFunctions.functions.TryGetValue(functionName, out NativeFunction? nativeFunction))
-        {
-            return nativeFunction;
-        }
         else if (parent != null)
         {
             return parent.GetFunction(name);
+        }
+        else if (StdLibrary.GlobalFunctions.functions.TryGetValue(functionName, out NativeFunction? nativeFunction))
+        {
+            return nativeFunction;
         }
 
         Interpreter.ReportError(name, $"Undefined function '{name.Lexeme}'.");
@@ -107,6 +107,20 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
         }
 
         groups[token.Lexeme] = (@public, group);
+    }
+
+    public void DefineGroup(string name, MPSLGroup group)
+    {
+        if (groups.ContainsKey(name))
+        {
+            throw new ArgumentException($"Group '{name}' has already been defined.");
+        }
+        else if (variables.ContainsKey(name))
+        {
+            throw new ArgumentException($"Cannot define a group with the same name as the variable '{name}'.");
+        }
+
+        groups[name] = (false, group);
     }
 
     public void AssignVariable(string name, object value)
@@ -179,6 +193,10 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
         else if (parent != null)
         {
             return parent.GetGroup(name);
+        }
+        else if (StdLibrary.BuiltInGroups.groups.TryGetValue(name.Lexeme, out MPSLGroup? group))
+        {
+            return group;
         }
 
         Interpreter.ReportError(name, $"Undefined group '{name.Lexeme}'.");

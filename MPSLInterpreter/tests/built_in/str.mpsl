@@ -2,9 +2,11 @@
 @print @str 1
 @print @str "test"
 @print @str true
+@print @str null
 
 # @EXPECT RUN
 # 0
 # 1
 # test
 # True
+# null

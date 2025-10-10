@@ -124,8 +124,8 @@ internal static class Parser
     private static Statement.Use UseRule()
     {
         Token useToken = PreviousToken();
-        Token path = RequireMatchNext(STRING, "Expected path to file to use as string.");
-        return new Statement.Use(useToken, path);
+        Token target = RequireMatchNext([STRING, IDENTIFIER], "Expected file path as string or name of built-in group.");
+        return new Statement.Use(useToken, target);
     }
 
     private static Statement.If IfRule()
