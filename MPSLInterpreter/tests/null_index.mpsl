@@ -1,0 +1,5 @@
+null -> var test
+@print test[0]
+
+# @EXPECT ERROR
+# [L2, C12] Runtime Error: Cannot index a null value.

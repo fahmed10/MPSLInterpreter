@@ -1,0 +1,13 @@
+group Group {
+    group Group {
+        "a" -> var value
+    }
+}
+
+@print Group::Group::value
+"b" -> Group::Group::value
+@print Group::Group::value
+
+# @EXPECT RUN
+# a
+# b

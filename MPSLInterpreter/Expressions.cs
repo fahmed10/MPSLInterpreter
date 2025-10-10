@@ -24,6 +24,9 @@ public abstract record class Expression : INode
         T VisitAccess(Access expression);
         T VisitPush(Push expression);
         T VisitInterpolatedString(InterpolatedString expression);
+        T VisitGroupAccess(GroupAccess expression);
+        T VisitGroup(Group expression);
+        T VisitFunction(Function expression);
     }
 
     public interface IVisitor
@@ -44,6 +47,9 @@ public abstract record class Expression : INode
         void VisitAccess(Access expression) { }
         void VisitPush(Push expression) { }
         void VisitInterpolatedString(InterpolatedString expression) { }
+        void VisitGroupAccess(GroupAccess expression) { }
+        void VisitGroup(Group expression) { }
+        void VisitFunction(Function expression) { }
     }
 
     public record Binary(Token operatorToken, Expression left, Expression right) : Expression
@@ -114,15 +120,15 @@ public abstract record class Expression : INode
         public override void Accept(IVisitor visitor) => visitor.VisitAssign(this);
         public override string ToString() => $"({value} -> {target})";
     }
-    public record Call(Token callee, IList<Expression> arguments) : Expression
+    public record Call(Expression callee, IList<Expression> arguments) : Expression
     {
         public override int Start => callee.Start;
         public override int End => arguments.LastOrDefault()?.End ?? callee.End;
-        public override Token FirstToken => callee;
+        public override Token FirstToken => callee.FirstToken;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitCall(this);
         public override void Accept(IVisitor visitor) => visitor.VisitCall(this);
-        public override string ToString() => $"({callee.Lexeme} {arguments.Select(e => e.ToString()).Aggregate((a, b) => $"{a}, {b}")})";
+        public override string ToString() => $"({callee} {arguments.Select(e => e.ToString()).Aggregate((a, b) => $"{a}, {b}")})";
     }
     public record Match(Expression value, IList<(Expression condition, Block body)> statements, Block? elseBlock, Token start, Token end) : Expression
     {
@@ -175,15 +181,6 @@ public abstract record class Expression : INode
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitObject(this);
         public override void Accept(IVisitor visitor) => visitor.VisitObject(this);
     }
-    public record InterpolatedString(IList<Expression> expressions, Token start, Token end) : Expression
-    {
-        public override int Start => start.Start;
-        public override int End => end.End;
-        public override Token FirstToken => start;
-
-        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitInterpolatedString(this);
-        public override void Accept(IVisitor visitor) => visitor.VisitInterpolatedString(this);
-    }
     public record Access(Expression expression, Expression indexExpression, Token start, Token end) : Expression
     {
         public override int Start => expression.Start;
@@ -201,6 +198,42 @@ public abstract record class Expression : INode
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitPush(this);
         public override void Accept(IVisitor visitor) => visitor.VisitPush(this);
+    }
+    public record InterpolatedString(IList<Expression> expressions, Token start, Token end) : Expression
+    {
+        public override int Start => start.Start;
+        public override int End => end.End;
+        public override Token FirstToken => start;
+
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitInterpolatedString(this);
+        public override void Accept(IVisitor visitor) => visitor.VisitInterpolatedString(this);
+    }
+    public record GroupAccess(Expression group, Token accessName) : Expression
+    {
+        public override int Start => group.Start;
+        public override int End => accessName.End;
+        public override Token FirstToken => group.FirstToken;
+
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroupAccess(this);
+        public override void Accept(IVisitor visitor) => visitor.VisitGroupAccess(this);
+    }
+    public record Group(Token name) : Expression
+    {
+        public override int Start => name.Start;
+        public override int End => name.End;
+        public override Token FirstToken => name;
+
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroup(this);
+        public override void Accept(IVisitor visitor) => visitor.VisitGroup(this);
+    }
+    public record Function(Token name) : Expression
+    {
+        public override int Start => name.Start;
+        public override int End => name.End;
+        public override Token FirstToken => name;
+
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitFunction(this);
+        public override void Accept(IVisitor visitor) => visitor.VisitFunction(this);
     }
 
     public abstract T Accept<T>(IVisitor<T> visitor);

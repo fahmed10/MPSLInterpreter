@@ -1,0 +1,9 @@
+10 -> var Var
+20 -> var VAR
+
+fn @fn FN, breaK => FN + breaK
+
+@print @fn Var, VAR
+
+# @EXPECT RUN
+# 30

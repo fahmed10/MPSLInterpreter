@@ -1,0 +1,10 @@
+group Test {
+    group Nested {
+        "a" -> var value
+    }
+}
+
+@print Test::Nested::value
+
+# @EXPECT RUN
+# a

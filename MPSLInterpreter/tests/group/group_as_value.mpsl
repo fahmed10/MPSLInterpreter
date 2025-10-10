@@ -1,0 +1,6 @@
+group Test {}
+
+@print Test
+
+# @EXPECT ERROR
+# [L3, C11] Runtime Error: Undefined variable 'Test'.

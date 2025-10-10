@@ -1,0 +1,5 @@
+3 -> var num
+@print num[0]
+
+# @EXPECT ERROR
+# [L2, C11] Runtime Error: Only arrays and strings can be indexed with an access expression.

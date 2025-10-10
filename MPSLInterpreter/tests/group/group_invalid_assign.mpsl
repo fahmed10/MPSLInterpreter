@@ -1,0 +1,8 @@
+group Group {
+    fn @test => 0
+}
+
+3 -> Group::@test
+
+# @EXPECT ERROR
+# [L5, C10] Runtime Error: Cannot assign to function.

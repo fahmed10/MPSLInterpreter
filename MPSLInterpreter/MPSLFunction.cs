@@ -9,7 +9,7 @@ internal record class MPSLFunction(int ArgumentCount, IList<Token> parameters, E
 
         for (int i = 0; i < ArgumentCount; i++)
         {
-            interpreter.environment.DefineVariable(parameters[i], args[i]);
+            interpreter.environment.DefineVariable(parameters[i], args[i], false);
         }
 
         object? value = interpreter.InterpretBlock(block, null, null);

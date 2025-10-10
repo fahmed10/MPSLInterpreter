@@ -1,0 +1,12 @@
+{
+    var
+    @print 0
+    fn
+    @print 1
+    var
+}
+
+# @EXPECT ERROR
+# [L2, C7] Expected variable name.
+# [L4, C6] Expected function name.
+# [L6, C7] Expected variable name.

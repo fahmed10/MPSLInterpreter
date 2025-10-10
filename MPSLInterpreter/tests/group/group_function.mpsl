@@ -1,0 +1,14 @@
+group Test {
+    fn @function x, y {
+        x + y
+    }
+
+    fn @function2 x, y => x * y
+}
+
+@print Test::@function 1, 2
+@print Test::@function2 3, 4
+
+# @EXPECT RUN
+# 3
+# 12

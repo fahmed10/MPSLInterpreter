@@ -14,6 +14,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
     public bool breakCalled = false;
     private Token breakToken = null!;
     private bool errorOccurred = false;
+    private bool declaringPublic = false;
     public MPSLEnvironment environment;
 
     public Interpreter(MPSLEnvironment environment)
@@ -157,17 +158,17 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
         if (expression.operatorToken.Type == PLUS)
         {
-            if (left is double && right is double)
+            if (left is double d1 && right is double d2)
             {
                 CheckNumericValue(expression.operatorToken, left);
                 CheckNumericValue(expression.operatorToken, right);
-                return (double)left + (double)right;
+                return d1 + d2;
             }
-            if (left is string && right is string)
+            if (left is string s1 && right is string s2)
             {
                 CheckStringValue(expression.operatorToken, left);
                 CheckStringValue(expression.operatorToken, right);
-                return (string)left + (string)right;
+                return s1 + s2;
             }
 
             ReportError(expression.operatorToken, "Operands must be two numbers or two strings.");
@@ -251,7 +252,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitVariableDeclaration(Expression.VariableDeclaration expression)
     {
-        environment.DefineVariable(expression.name, null);
+        environment.DefineVariable(expression.name, null, declaringPublic);
         return null;
     }
 
@@ -295,11 +296,23 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
                 ReportError(access.start, "Only arrays can be assigned to with an access expression.");
             }
         }
-        else
+        else if (expression.target is Expression.GroupAccess groupAccess)
         {
-            Expression.Variable variable = (Expression.Variable)expression.target;
+            MPSLGroup group = (MPSLGroup)Evaluate(groupAccess.group)!;
+            group.Environment.AssignVariable(groupAccess.accessName, Evaluate(expression.value));
+        }
+        else if (expression.target is Expression.Variable variable)
+        {
             environment.contextValue = environment.GetVariableValue(variable.name);
             environment.AssignVariable(variable.name, Evaluate(expression.value));
+        }
+        else if (expression.target is Expression.Call call)
+        {
+            ReportError(call.callee.FirstToken, "Cannot assign to function.");
+        }
+        else
+        {
+            ReportError(expression.target.FirstToken, "Invalid assignment target.");
         }
 
         returnValue = expression.value;
@@ -315,11 +328,11 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
             arguments.Add(Evaluate(argument));
         }
 
-        ICallable function = environment.GetFunction(expression.callee);
+        ICallable function = (ICallable)Evaluate(expression.callee)!;
 
         if (function.ArgumentCount != arguments.Count)
         {
-            ReportError(expression.callee, $"Expected {function.ArgumentCount} argument(s), but got {arguments.Count} argument(s).");
+            ReportError(expression.callee.FirstToken, $"Expected {function.ArgumentCount} argument(s), but got {arguments.Count} argument(s).");
         }
 
         try
@@ -328,7 +341,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         }
         catch (Exception e)
         {
-            ReportErrorRaw($"In function '{expression.callee.Lexeme}', called from [L{expression.callee.Line}, C{expression.callee.Column}]:\n{(e.InnerException ?? e).Message}");
+            ReportErrorRaw($"In function '{expression.callee}', called from [L{expression.callee.FirstToken.Line}, C{expression.callee.FirstToken.Column}]:\n{(e.InnerException ?? e).Message}");
             return null;
         }
     }
@@ -440,7 +453,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
         foreach (object? value in collectionValues)
         {
-            blockValue = InterpretBlock(statement.body, Invalid.Value, e => e.DefineVariable(statement.variableName, value));
+            blockValue = InterpretBlock(statement.body, Invalid.Value, e => e.DefineVariable(statement.variableName, value, false));
 
             if (breakCalled)
             {
@@ -486,7 +499,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitFunctionDeclaration(Statement.FunctionDeclaration statement)
     {
-        environment.DefineFunction(statement.name, new MPSLFunction(statement.parameters.Count, statement.parameters, statement.body));
+        environment.DefineFunction(statement.name, new MPSLFunction(statement.parameters.Count, statement.parameters, statement.body), declaringPublic);
         return null;
     }
 
@@ -596,7 +609,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         }
         else
         {
-            ReportError(expression.start, "Only arrays and strings can be accessed with an access expression.");
+            ReportError(expression.start, value is null ? "Cannot index a null value." : "Only arrays and strings can be indexed with an access expression.");
             return null;
         }
     }
@@ -650,5 +663,44 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
         environment.AddEnvironment(statement.path, env);
         return null;
+    }
+
+    public object? VisitGroup(Statement.Group statement)
+    {
+        MPSLEnvironment groupEnvironment = null!;
+        InterpretBlock(statement.body, Invalid.Value, e => groupEnvironment = e);
+        environment.DefineGroup(statement.name, new(groupEnvironment), declaringPublic);
+        return null;
+    }
+
+    public object? VisitPublic(Statement.Public statement)
+    {
+        declaringPublic = true;
+        object? value = statement.statement.Accept(this);
+        declaringPublic = false;
+        return value;
+    }
+
+    public object? VisitGroupAccess(Expression.GroupAccess expression)
+    {
+        MPSLGroup? group = (MPSLGroup?)Evaluate(expression.group);
+
+        if (group is null)
+        {
+            ReportError(expression.group.FirstToken, "Cannot access a null group.");
+            return null;
+        }
+
+        return group.Environment.Get(expression.accessName);
+    }
+
+    public object? VisitGroup(Expression.Group expression)
+    {
+        return environment.GetGroup(expression.name);
+    }
+
+    public object? VisitFunction(Expression.Function expression)
+    {
+        return environment.GetFunction(expression.name);
     }
 }

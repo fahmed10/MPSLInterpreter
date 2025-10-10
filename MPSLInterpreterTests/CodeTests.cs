@@ -33,6 +33,7 @@ public partial class CodeTests
         string[] lines = code
             .Split(NEWLINE_STRINGS, StringSplitOptions.None)
             .SkipWhile(l => !l.StartsWith("# @EXPECT"))
+            .Where(l => l.Length > 0)
             .Select(l => l.Length >= 2 ? l[2..] : l[1..]) // Strip comment marker and space from each line
             .ToArray();
 

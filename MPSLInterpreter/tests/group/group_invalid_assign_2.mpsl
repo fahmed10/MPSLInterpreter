@@ -1,0 +1,10 @@
+group Group {
+    group Test {
+
+    }
+}
+
+1 -> Group::Test
+
+# @EXPECT ERROR
+# [L7, C16] Runtime Error: Undefined variable 'Test'.

@@ -32,20 +32,12 @@ internal static class Parser
 
         while (!IsNextToken(EOF))
         {
-            try
-            {
-                statements.Add(StatementRule());
-                if (statements.Last() is Statement.ExpressionStatement expressionStatement)
-                {
-                    RequireExpressionStatement(expressionStatement.expression);
-                }
-            }
-            catch (ParseException)
-            {
-                Synchronize();
-            }
+            SynchronizationBoundary(() => statements.Add(DeclarationRule(false)));
 
-            MatchNextToken(EOL);
+            if (statements.LastOrDefault() is Statement.ExpressionStatement expressionStatement)
+            {
+                RequireExpressionStatement(expressionStatement.expression);
+            }
 
             if (current >= tokens.Count)
             {
@@ -58,18 +50,75 @@ internal static class Parser
         return statements;
     }
 
-    private static Statement StatementRule()
+    private static Statement DeclarationRule(bool required)
+    {
+        if (MatchNextToken(PUBLIC))
+        {
+            return new Statement.Public(PreviousToken(), DeclarationStatementRule(true));
+        }
+
+        return DeclarationStatementRule(required);
+    }
+
+    private static Statement DeclarationStatementRule(bool required)
     {
         if (IsNextToken(VAR)) return new Statement.ExpressionStatement(VariableRule());
+        if (MatchNextToken(FN)) return FunctionRule();
+        if (MatchNextToken(GROUP)) return GroupRule();
+
+        if (required)
+        {
+            Statement.ExpressionStatement statement = ExpressionStatementRule();
+
+            if (statement.expression is not Expression.Assign assign || assign.target is not Expression.VariableDeclaration)
+            {
+                throw ReportError(PreviousToken(), "Expected variable, function, or group declaration.");
+            }
+
+            return statement;
+        }
+        else
+        {
+            return StatementRule();
+        }
+    }
+
+    private static Statement StatementRule()
+    {
         if (MatchNextToken(IF)) return IfRule();
         if (MatchNextToken(WHILE)) return WhileRule();
         if (MatchNextToken(EACH)) return EachRule();
         if (IsNextToken(CURLY_LEFT)) return new Statement.ExpressionStatement(BlockRule());
         if (MatchNextToken(BREAK)) return BreakRule();
-        if (MatchNextToken(FN)) return FunctionRule();
         if (MatchNextToken(USE)) return UseRule();
 
         return ExpressionStatementRule();
+    }
+
+    private static Statement.Group GroupRule()
+    {
+        Token groupToken = PreviousToken();
+        Token name = RequireMatchNext(IDENTIFIER, "Expected group name.");
+
+        Token start = RequireMatchNext(CURLY_LEFT, "Expected '{'.");
+        List<Statement> statements = [];
+
+        while (!MatchNextToken(CURLY_RIGHT) && !IsNextToken(EOF))
+        {
+            SynchronizationBoundary(() =>
+            {
+                statements.Add(DeclarationRule(true));
+                MatchNextToken(EOL);
+            });
+        }
+
+        if (PreviousToken().Type != CURLY_RIGHT && IsNextToken(EOF))
+        {
+            ReportError(PeekToken(), "Expected '}'.");
+        }
+
+        Expression.Block body = new(statements, start, PreviousToken().End);
+        return new Statement.Group(groupToken, name, body);
     }
 
     private static Statement.Use UseRule()
@@ -166,10 +215,9 @@ internal static class Parser
 
         while (!MatchNextToken(CURLY_RIGHT) && !IsNextToken(EOF))
         {
-            statements.Add(StatementRule());
-            MatchNextToken(EOL);
+            SynchronizationBoundary(() => statements.Add(DeclarationStatementRule(false)));
 
-            if (!IsNextToken(CURLY_RIGHT, EOF) && statements.Last() is Statement.ExpressionStatement expressionStatement)
+            if (!IsNextToken(CURLY_RIGHT, EOF) && statements.LastOrDefault() is Statement.ExpressionStatement expressionStatement)
             {
                 RequireExpressionStatement(expressionStatement.expression);
             }
@@ -186,7 +234,11 @@ internal static class Parser
     private static Statement.ExpressionStatement ExpressionStatementRule()
     {
         Expression expression = ExpressionRule();
-        RequireEndOfLineOrFile("Expected <EOL>.");
+
+        if (!IsNextToken(CURLY_RIGHT))
+        {
+            RequireEndOfLineOrFile("Expected <EOL>.");
+        }
 
         return new Statement.ExpressionStatement(expression);
     }
@@ -249,7 +301,7 @@ internal static class Parser
         {
             if (!IsNextToken(IDENTIFIER))
             {
-                throw ReportError(ReadToken(), "Expected variable name.");
+                throw ReportError(ReadToken(), PreviousToken().Type == COMMAND ? "Cannot assign to function." : "Expected variable name.");
             }
 
             return AccessRule();
@@ -284,7 +336,7 @@ internal static class Parser
 
     private static Expression AccessRule()
     {
-        Expression expression = PrimaryRule();
+        Expression expression = GroupAccessRule();
 
         while (MatchNextToken(SQUARE_LEFT))
         {
@@ -292,6 +344,24 @@ internal static class Parser
             Expression indexExpression = ExpressionRule();
             RequireMatchNext(SQUARE_RIGHT, "Expected ']'.");
             expression = new Expression.Access(expression, indexExpression, start, PreviousToken());
+        }
+
+        return expression;
+    }
+
+    private static Expression GroupAccessRule()
+    {
+        Expression expression = PrimaryRule();
+
+        while (MatchNextToken(COLON_COLON))
+        {
+            Token name = RequireMatchNext([IDENTIFIER, COMMAND], "Expected identifier.");
+            expression = new Expression.GroupAccess(expression, name);
+
+            if (PreviousToken().Type == COMMAND)
+            {
+                expression = new Expression.Call(expression, ReadCallArguments());
+            }
         }
 
         return expression;
@@ -306,6 +376,7 @@ internal static class Parser
 
         return ReadToken().Type switch
         {
+            IDENTIFIER when IsNextToken(COLON_COLON) => new Expression.Group(PreviousToken()),
             IDENTIFIER => new Expression.Variable(PreviousToken()),
             AT => new Expression.ContextValue(PreviousToken()),
             SQUARE_LEFT => ArrayLiteralRule(),
@@ -492,8 +563,12 @@ internal static class Parser
     private static Expression.Call CallRule()
     {
         Token command = PreviousToken();
-        List<Expression> args = [];
+        return new Expression.Call(new Expression.Function(command), ReadCallArguments());
+    }
 
+    private static List<Expression> ReadCallArguments()
+    {
+        List<Expression> args = [];
         TokenType[] callEndTokens = [CURLY_LEFT, ARROW, EOL, EOF, COMMA, PAREN_RIGHT, SQUARE_RIGHT];
 
         while (!(IsNextNextToken([.. binaryOperators.SelectMany(t => t), .. callEndTokens]) && MatchNextToken(EXCLAMATION)) && !IsNextToken(callEndTokens))
@@ -513,7 +588,21 @@ internal static class Parser
             }
         }
 
-        return new Expression.Call(command, args);
+        return args;
+    }
+
+    private static void SynchronizationBoundary(Action action)
+    {
+        try
+        {
+            action.Invoke();
+        }
+        catch (ParseException)
+        {
+            Synchronize();
+        }
+
+        MatchNextToken(EOL);
     }
 
     private static void Synchronize()

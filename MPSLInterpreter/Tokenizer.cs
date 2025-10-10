@@ -49,10 +49,11 @@ internal static class Tokenizer
         { "break", BREAK },
         { "match", MATCH },
         { "fn", FN },
-        { "type", TYPE },
         { "each", EACH },
         { "null", NULL },
-        { "use", USE }
+        { "use", USE },
+        { "group", GROUP },
+        { "public", PUBLIC },
     };
 
     private static void Reset()
@@ -126,7 +127,14 @@ internal static class Tokenizer
         else if (char.IsAsciiLetter(c) || c is '_')
         {
             AdvanceWhile(c => char.IsAsciiLetterOrDigit(c) || c is '_');
-            AddToken(keywords.ContainsKey(CurrentString.ToLower()) ? keywords[CurrentString.ToLower()] : IDENTIFIER);
+            if (keywords.TryGetValue(CurrentString, out TokenType tokenType))
+            {
+                AddToken(tokenType);
+            }
+            else
+            {
+                AddToken(IDENTIFIER);
+            }
         }
         else if (c is '.' && NextChar() is '.')
         {
@@ -170,6 +178,11 @@ internal static class Tokenizer
         {
             current += 2;
             AddToken(LESSER_EQUAL);
+        }
+        else if (c is ':' && NextChar() is ':')
+        {
+            current += 2;
+            AddToken(COLON_COLON);
         }
         else if (operators.TryGetValue(c, out TokenType type))
         {

@@ -1,0 +1,11 @@
+group TestGroup {
+    1 -> var first
+    var second
+}
+
+@print TestGroup::first
+@print TestGroup::second
+
+# @EXPECT RUN
+# 1
+# null

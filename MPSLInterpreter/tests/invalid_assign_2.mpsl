@@ -1,0 +1,8 @@
+fn @test {
+    "test"
+}
+
+0 -> @test
+
+# @EXPECT ERROR
+# [L5, C10] Cannot assign to function.

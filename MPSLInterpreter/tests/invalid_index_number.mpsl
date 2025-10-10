@@ -1,0 +1,5 @@
+[1, 2, 3] -> var array
+@print array[0.5]
+
+# @EXPECT ERROR
+# [L2, C13] Runtime Error: Index of access expression must evaluate to a whole number.
