@@ -95,7 +95,7 @@ internal static class Parser
         return ExpressionStatementRule();
     }
 
-    private static Statement.Group GroupRule()
+    private static Statement.GroupDeclaration GroupRule()
     {
         Token groupToken = PreviousToken();
         Token name = RequireMatchNext(IDENTIFIER, "Expected group name.");
@@ -118,7 +118,7 @@ internal static class Parser
         }
 
         Expression.Block body = new(statements, start, PreviousToken().End);
-        return new Statement.Group(groupToken, name, body);
+        return new Statement.GroupDeclaration(groupToken, name, body);
     }
 
     private static Statement.Use UseRule()

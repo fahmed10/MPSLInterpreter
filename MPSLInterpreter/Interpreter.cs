@@ -678,7 +678,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         return null;
     }
 
-    public object? VisitGroup(Statement.Group statement)
+    public object? VisitGroupDeclaration(Statement.GroupDeclaration statement)
     {
         MPSLEnvironment groupEnvironment = new(environment);
         InterpretBlock(statement.body, groupEnvironment);

@@ -15,7 +15,7 @@ public abstract record class Statement : INode
         T VisitEach(Each statement);
         T VisitFunctionDeclaration(FunctionDeclaration statement);
         T VisitUse(Use statement);
-        T VisitGroup(Group statement);
+        T VisitGroupDeclaration(GroupDeclaration statement);
         T VisitPublic(Public statement);
     }
 
@@ -28,7 +28,7 @@ public abstract record class Statement : INode
         void VisitEach(Each statement) { }
         void VisitFunctionDeclaration(FunctionDeclaration statement) { }
         void VisitUse(Use statement) { }
-        void VisitGroup(Group statement) { }
+        void VisitGroupDeclaration(GroupDeclaration statement) { }
         void VisitPublic(Public statement) { }
     }
 
@@ -96,14 +96,14 @@ public abstract record class Statement : INode
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitUse(this);
         public override void Accept(IVisitor visitor) => visitor.VisitUse(this);
     }
-    public record Group(Token start, Token name, Expression.Block body) : Statement
+    public record GroupDeclaration(Token start, Token name, Expression.Block body) : Statement
     {
         public override int Start => start.Start;
         public override int End => body.End;
         public override Token FirstToken => start;
 
-        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroup(this);
-        public override void Accept(IVisitor visitor) => visitor.VisitGroup(this);
+        public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroupDeclaration(this);
+        public override void Accept(IVisitor visitor) => visitor.VisitGroupDeclaration(this);
     }
     public record Public(Token start, Statement statement) : Statement
     {
