@@ -216,6 +216,7 @@ public abstract record class Expression : INode
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroupAccess(this);
         public override void Accept(IVisitor visitor) => visitor.VisitGroupAccess(this);
+        public override string ToString() => $"{group}::{accessName.Lexeme}";
     }
     public record Group(Token name) : Expression
     {
@@ -225,6 +226,7 @@ public abstract record class Expression : INode
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroup(this);
         public override void Accept(IVisitor visitor) => visitor.VisitGroup(this);
+        public override string ToString() => name.Lexeme;
     }
     public record Function(Token name) : Expression
     {
@@ -234,6 +236,7 @@ public abstract record class Expression : INode
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitFunction(this);
         public override void Accept(IVisitor visitor) => visitor.VisitFunction(this);
+        public override string ToString() => name.Lexeme;
     }
 
     public abstract T Accept<T>(IVisitor<T> visitor);
