@@ -1,0 +1,13 @@
+"A" -> var x
+
+{
+    fn @test => @print x
+
+    @test
+    "B" -> var x
+    @test
+}
+
+# @EXPECT RUN
+# A
+# A

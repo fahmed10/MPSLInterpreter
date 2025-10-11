@@ -1,0 +1,16 @@
+fn @a {
+    1
+}
+
+fn @b {
+    @a! + @c
+}
+
+fn @c {
+    3
+}
+
+@print @b
+
+# @EXPECT RUN
+# 4

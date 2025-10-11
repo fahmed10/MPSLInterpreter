@@ -6,7 +6,7 @@
 /// <param name="parent">The parent of this environment.</param>
 public class MPSLEnvironment(MPSLEnvironment? parent = null)
 {
-    internal readonly Dictionary<string, (bool @public, object? value)> variables = [];
+    internal readonly Dictionary<string, (bool @public, object? value, int position)> variables = [];
     readonly Dictionary<string, (bool @public, ICallable function)> functions = [];
     readonly Dictionary<string, (bool @public, MPSLGroup group)> groups = [];
     internal object? contextValue = Invalid.Value;
@@ -37,7 +37,7 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
             throw new ArgumentException($"Variable '{name}' has already been defined in this environment.");
         }
 
-        variables[name] = (false, value);
+        variables[name] = (false, value, -1);
     }
 
     internal void DefineVariable(Token token, object? value, bool @public)
@@ -51,7 +51,7 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
             Interpreter.ReportError(token, $"Cannot define a variable with the same name as the group '{token.Lexeme}'.");
         }
 
-        variables[token.Lexeme] = (@public, value);
+        variables[token.Lexeme] = (@public, value, token.Start);
     }
 
     public void DefineFunction(string name, NativeFunction function)
@@ -125,9 +125,9 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
     public void AssignVariable(string name, object value)
     {
-        if (variables.TryGetValue(name, out (bool @public, object? value) result))
+        if (variables.TryGetValue(name, out (bool @public, object? value, int position) result))
         {
-            variables[name] = (result.@public, value);
+            variables[name] = (result.@public, value, result.position);
             return;
         }
         else if (parent != null)
@@ -141,9 +141,9 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
     internal void AssignVariable(Token name, object? value)
     {
-        if (variables.TryGetValue(name.Lexeme, out (bool @public, object? value) result))
+        if (variables.TryGetValue(name.Lexeme, out (bool @public, object? value, int position) result))
         {
-            variables[name.Lexeme] = (result.@public, value);
+            variables[name.Lexeme] = (result.@public, value, result.position);
             return;
         }
         else if (parent != null)
@@ -157,7 +157,7 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
     public object? GetVariableValue(string name)
     {
-        if (variables.TryGetValue(name, out (bool @public, object? value) result))
+        if (variables.TryGetValue(name, out (bool @public, object? value, int position) result))
         {
             return result.value;
         }
@@ -171,7 +171,7 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
     internal object? GetVariableValue(Token name)
     {
-        if (variables.TryGetValue(name.Lexeme, out (bool @public, object? value) result))
+        if (variables.TryGetValue(name.Lexeme, out (bool @public, object? value, int position) result) && result.position < name.Start)
         {
             return result.value;
         }

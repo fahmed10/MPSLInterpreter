@@ -1,0 +1,10 @@
+group Test {
+    fn @test => x
+}
+
+3 -> var x
+@print Test::@test
+
+# @EXPECT ERROR
+# In function 'Test::@test', called from [L6, C11]:
+# [L2, C17] Runtime Error: Undefined variable 'x'.

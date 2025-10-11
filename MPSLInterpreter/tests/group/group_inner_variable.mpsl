@@ -1,0 +1,10 @@
+group Test {
+    3 -> var value
+
+    fn @test => value
+}
+
+@print Test::@test
+
+# @EXPECT RUN
+# 3

@@ -356,15 +356,14 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         return Evaluate(statement.expression);
     }
 
-    public object? InterpretBlock(Expression.Block block, object? contextValue, Action<MPSLEnvironment>? environmentAction)
+    public object? InterpretBlock(Expression.Block block, MPSLEnvironment? blockEnvironment = null)
     {
         MPSLEnvironment previous = environment;
         object? lastValue = Invalid.Value;
 
         try
         {
-            environment = new(environment) { contextValue = contextValue };
-            environmentAction?.Invoke(environment);
+            environment = blockEnvironment ?? new(environment);
 
             foreach (Statement statement in block.statements)
             {
@@ -390,7 +389,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitBlock(Expression.Block expression)
     {
-        return InterpretBlock(expression, Invalid.Value, null);
+        return InterpretBlock(expression);
     }
 
     public object? VisitIf(Statement.If statement)
@@ -451,7 +450,9 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
         foreach (object? value in collectionValues)
         {
-            blockValue = InterpretBlock(statement.body, Invalid.Value, e => e.DefineVariable(statement.variableName, value, false));
+            MPSLEnvironment blockEnvironment = new(environment);
+            blockEnvironment.DefineVariable(statement.variableName, value, false);
+            blockValue = InterpretBlock(statement.body, blockEnvironment);
 
             if (breakCalled)
             {
@@ -497,7 +498,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitFunctionDeclaration(Statement.FunctionDeclaration statement)
     {
-        environment.DefineFunction(statement.name, new MPSLFunction(statement.parameters.Count, statement.parameters, statement.body), declaringPublic);
+        environment.DefineFunction(statement.name, new MPSLFunction(statement.parameters.Count, statement.parameters, statement.body, environment), declaringPublic);
         return null;
     }
 
@@ -679,8 +680,8 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitGroup(Statement.Group statement)
     {
-        MPSLEnvironment groupEnvironment = null!;
-        InterpretBlock(statement.body, Invalid.Value, e => groupEnvironment = e);
+        MPSLEnvironment groupEnvironment = new(environment);
+        InterpretBlock(statement.body, groupEnvironment);
         environment.DefineGroup(statement.name, new(groupEnvironment), declaringPublic);
         return null;
     }

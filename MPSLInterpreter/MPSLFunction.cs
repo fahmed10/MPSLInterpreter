@@ -1,20 +1,18 @@
 ﻿namespace MPSLInterpreter;
 
-internal record class MPSLFunction(int ArgumentCount, IList<Token> parameters, Expression.Block block) : ICallable
+internal record class MPSLFunction(int ArgumentCount, IList<Token> Parameters, Expression.Block Block, MPSLEnvironment Closure) : ICallable
 {
     public object? Call(Interpreter interpreter, object?[] args)
     {
-        MPSLEnvironment previous = interpreter.environment;
-        interpreter.environment = new MPSLEnvironment(interpreter.environment);
+        MPSLEnvironment blockEnvironment = new(Closure);
 
         for (int i = 0; i < ArgumentCount; i++)
         {
-            interpreter.environment.DefineVariable(parameters[i], args[i], false);
+            blockEnvironment.DefineVariable(Parameters[i], args[i], false);
         }
 
-        object? value = interpreter.InterpretBlock(block, null, null);
+        object? value = interpreter.InterpretBlock(Block, blockEnvironment);
         interpreter.breakCalled = false;
-        interpreter.environment = previous;
         return value;
     }
 }
