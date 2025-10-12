@@ -211,12 +211,12 @@ public abstract record class Expression : INode
     public record GroupAccess(Expression group, Token accessName) : Expression
     {
         public override int Start => group.Start;
-        public override int End => accessName.End;
+        public override int End => accessName?.End ?? group.End + 2;
         public override Token FirstToken => group.FirstToken;
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroupAccess(this);
         public override void Accept(IVisitor visitor) => visitor.VisitGroupAccess(this);
-        public override string ToString() => $"{group}::{accessName.Lexeme}";
+        public override string ToString() => $"{group}::{accessName?.Lexeme}";
     }
     public record Group(Token name) : Expression
     {

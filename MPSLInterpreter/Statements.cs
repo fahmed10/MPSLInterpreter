@@ -40,7 +40,7 @@ public abstract record class Statement : INode
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitExpressionStatement(this);
         public override void Accept(IVisitor visitor) => visitor.VisitExpressionStatement(this);
-        public override string ToString() => $"{expression};";
+        public override string ToString() => $"ExpressionStatement({expression})";
     }
     public record If(Token start, IList<(Expression condition, Expression.Block body)> statements, Expression.Block? elseBlock) : Statement
     {

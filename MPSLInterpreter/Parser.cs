@@ -355,8 +355,15 @@ internal static class Parser
 
         while (MatchNextToken(COLON_COLON))
         {
-            Token name = RequireMatchNext([IDENTIFIER, COMMAND], "Expected identifier.");
-            expression = new Expression.GroupAccess(expression, name);
+            try
+            {
+                Token name = RequireMatchNext([IDENTIFIER, COMMAND], "Expected identifier.");
+                expression = new Expression.GroupAccess(expression, name);
+            }
+            catch (ParseException)
+            {
+                expression = new Expression.GroupAccess(expression, null!);
+            }
 
             if (PreviousToken().Type == COMMAND)
             {

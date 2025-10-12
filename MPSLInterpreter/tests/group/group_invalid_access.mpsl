@@ -1,0 +1,8 @@
+group Test {
+
+}
+
+@print Test::
+
+# @EXPECT ERROR
+# [L5, C13] Expected identifier.
