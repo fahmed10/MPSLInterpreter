@@ -498,7 +498,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitFunctionDeclaration(Statement.FunctionDeclaration statement)
     {
-        environment.DefineFunction(statement.name, new MPSLFunction(statement.parameters.Count, statement.parameters, statement.body, environment), declaringPublic);
+        environment.DefineFunction(statement.name, new MPSLFunction(statement.parameters, statement.body, environment), declaringPublic);
         return null;
     }
 

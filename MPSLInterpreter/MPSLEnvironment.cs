@@ -1,4 +1,6 @@
-﻿namespace MPSLInterpreter;
+﻿using System.Collections.Immutable;
+
+namespace MPSLInterpreter;
 
 /// <summary>
 /// Stores variables and functions that were declared in its block in MPSL code.
@@ -6,6 +8,9 @@
 /// <param name="parent">The parent of this environment.</param>
 public class MPSLEnvironment(MPSLEnvironment? parent = null)
 {
+    public ImmutableList<string> Variables => [.. variables.Keys];
+    public ImmutableList<string> Functions => [.. functions.Keys.Select(name => "@" + name)];
+    public ImmutableList<string> Groups => [.. groups.Keys];
     internal readonly Dictionary<string, (bool @public, object? value, int position)> variables = [];
     readonly Dictionary<string, (bool @public, ICallable function)> functions = [];
     readonly Dictionary<string, (bool @public, MPSLGroup group)> groups = [];
@@ -93,6 +98,26 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
         Interpreter.ReportError(name, $"Undefined function '{name.Lexeme}'.");
         return null;
+    }
+
+    public ICallable GetFunction(string name)
+    {
+        string functionName = name.Length > 0 && name[0] == '@' ? name[1..] : name;
+
+        if (functions.TryGetValue(functionName, out (bool @public, ICallable function) result))
+        {
+            return result.function;
+        }
+        else if (parent != null)
+        {
+            return parent.GetFunction(functionName);
+        }
+        else if (StdLibrary.GlobalFunctions.functions.TryGetValue(functionName, out NativeFunction? nativeFunction))
+        {
+            return nativeFunction;
+        }
+
+        throw new ArgumentException($"Undefined function '{name}'.");
     }
 
     internal void DefineGroup(Token token, MPSLGroup group, bool @public)
@@ -184,7 +209,7 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
         return null;
     }
 
-    internal object? GetGroup(Token name)
+    internal MPSLGroup GetGroup(Token name)
     {
         if (groups.TryGetValue(name.Lexeme, out (bool @public, MPSLGroup value) result))
         {
@@ -201,6 +226,24 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
         Interpreter.ReportError(name, $"Undefined group '{name.Lexeme}'.");
         return null;
+    }
+
+    public MPSLGroup GetGroup(string name)
+    {
+        if (groups.TryGetValue(name, out (bool @public, MPSLGroup value) result))
+        {
+            return result.value;
+        }
+        else if (parent != null)
+        {
+            return parent.GetGroup(name);
+        }
+        else if (StdLibrary.BuiltInGroups.groups.TryGetValue(name, out MPSLGroup? group))
+        {
+            return group;
+        }
+
+        throw new ArgumentException($"Undefined group '{name}'.");
     }
 
     internal object? Get(Token name)

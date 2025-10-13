@@ -1,7 +1,13 @@
-﻿namespace MPSLInterpreter;
+﻿using System.Collections.Immutable;
 
-internal record class MPSLFunction(int ArgumentCount, IList<Token> Parameters, Expression.Block Block, MPSLEnvironment Closure) : ICallable
+namespace MPSLInterpreter;
+
+internal record class MPSLFunction(IList<Token> Parameters, Expression.Block Block, MPSLEnvironment Closure) : ICallable
 {
+    public int ArgumentCount => Parameters.Count;
+    public ImmutableList<string> ParameterNames => parameterNames;
+    readonly ImmutableList<string> parameterNames = [.. Parameters.Select(p => p.Lexeme)];
+
     public object? Call(Interpreter interpreter, object?[] args)
     {
         MPSLEnvironment blockEnvironment = new(Closure);
