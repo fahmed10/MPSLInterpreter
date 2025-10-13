@@ -72,7 +72,7 @@ internal static class Parser
 
             if (statement.expression is not Expression.Assign assign || assign.target is not Expression.VariableDeclaration)
             {
-                throw ReportError(PreviousToken(), "Expected variable, function, or group declaration.");
+                ReportError(PreviousToken(), "Expected variable, function, or group declaration.");
             }
 
             return statement;
@@ -186,7 +186,12 @@ internal static class Parser
         {
             RequireMatchNext(THICK_ARROW, "Expected '=>' or '{'.");
 
-            if (IsNextToken(VAR))
+            if (IsNextToken(EOL))
+            {
+                ReportError(PeekToken(), "Expected expression.");
+                block = new Expression.Block([], PeekToken(), PeekToken().End);
+            }
+            else if (IsNextToken(VAR))
             {
                 ReportError(PeekToken(), "Cannot declare variable inside '=>' block.");
                 Statement variableStatement = new Statement.ExpressionStatement(VariableRule());

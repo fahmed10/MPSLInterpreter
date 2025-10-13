@@ -1,0 +1,8 @@
+{
+    {
+        fn @test => 
+    }
+}
+
+# @EXPECT ERROR
+# [L3, C20] Expected expression.
