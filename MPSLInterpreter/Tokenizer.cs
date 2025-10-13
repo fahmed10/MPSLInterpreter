@@ -38,7 +38,18 @@ internal static class Tokenizer
         { '|', PIPE },
     };
 
-    private static readonly Dictionary<string, TokenType> keywords = new()
+    private static readonly Dictionary<string, TokenType> compoundOperators = new()
+    {
+        { "..", DOT_DOT },
+        { "->", ARROW },
+        { "=>", THICK_ARROW },
+        { "!=", EXCLAMATION_EQUAL },
+        { ">=", GREATER_EQUAL },
+        { "<=", LESSER_EQUAL },
+        { "::", COLON_COLON },
+    };
+
+    internal static readonly Dictionary<string, TokenType> keywords = new()
     {
         { "true", TRUE },
         { "false", FALSE },
@@ -54,6 +65,15 @@ internal static class Tokenizer
         { "use", USE },
         { "group", GROUP },
         { "public", PUBLIC },
+    };
+
+    private static readonly Dictionary<char, char> escapeSequences = new()
+    {
+        { 'n', '\n' },
+        { 'r', '\r' },
+        { 't', '\t' },
+        { '"', '"' },
+        { '\\', '\\' }
     };
 
     private static void Reset()
@@ -95,7 +115,7 @@ internal static class Tokenizer
             }
             else if (code[current] == '"')
             {
-                ReadInterpolated('"', '{', '}', INTERPOLATED_STRING_START, INTERPOLATED_STRING_END);
+                ReadInterpolated();
             }
             else if (!char.IsAsciiLetterOrDigit(code[current]))
             {
@@ -109,20 +129,12 @@ internal static class Tokenizer
         }
         else if (c is '"')
         {
-            current++;
-            AdvanceWhile(c => c is not '"');
-            current++;
-
-            if (current > code.Length)
-            {
-                ReportError("Unterminated string literal.");
-                current = code.Length;
-                AddToken(STRING, CurrentString[1..]);
-            }
-            else
-            {
-                AddToken(STRING, CurrentString[1..^1]);
-            }
+            ReadString();
+        }
+        else if (compoundOperators.TryGetValue($"{c}{NextChar()}", out TokenType compoundType))
+        {
+            current += 2;
+            AddToken(compoundType);
         }
         else if (char.IsAsciiLetter(c) || c is '_')
         {
@@ -136,11 +148,6 @@ internal static class Tokenizer
                 AddToken(IDENTIFIER);
             }
         }
-        else if (c is '.' && NextChar() is '.')
-        {
-            current += 2;
-            AddToken(DOT_DOT);
-        }
         else if (c is '.' || char.IsAsciiDigit(c))
         {
             current++;
@@ -153,36 +160,6 @@ internal static class Tokenizer
             {
                 ReportError($"Invalid number '{CurrentString}'.");
             }
-        }
-        else if (c is '-' && NextChar() is '>')
-        {
-            current += 2;
-            AddToken(ARROW);
-        }
-        else if (c is '=' && NextChar() is '>')
-        {
-            current += 2;
-            AddToken(THICK_ARROW);
-        }
-        else if (c is '!' && NextChar() is '=')
-        {
-            current += 2;
-            AddToken(EXCLAMATION_EQUAL);
-        }
-        else if (c is '>' && NextChar() is '=')
-        {
-            current += 2;
-            AddToken(GREATER_EQUAL);
-        }
-        else if (c is '<' && NextChar() is '=')
-        {
-            current += 2;
-            AddToken(LESSER_EQUAL);
-        }
-        else if (c is ':' && NextChar() is ':')
-        {
-            current += 2;
-            AddToken(COLON_COLON);
         }
         else if (operators.TryGetValue(c, out TokenType type))
         {
@@ -239,28 +216,74 @@ internal static class Tokenizer
         }
     }
 
-    private static void ReadInterpolated(char endChar, char interpolateStart, char interpolateEnd, TokenType startType, TokenType endType)
+    private static void ReadString()
     {
         current++;
-        AddToken(startType);
+        AdvanceWhile((c, next, i) =>
+        {
+            if (c is '\\')
+            {
+                if (escapeSequences.ContainsKey(next))
+                {
+                    current++;
+                }
+                else
+                {
+                    ReportError($"Invalid escape sequence '\\{next}'.");
+                }
+            }
+
+            return c is not '"';
+        });
+        current++;
+
+        if (current > code.Length)
+        {
+            ReportError("Unterminated string literal.");
+            current = code.Length;
+            AddToken(STRING, ReplaceEscapeSequences(CurrentString[1..]));
+        }
+        else
+        {
+            AddToken(STRING, ReplaceEscapeSequences(CurrentString[1..^1]));
+        }
+    }
+
+    private static void ReadInterpolated()
+    {
+        current++;
+        AddToken(INTERPOLATED_STRING_START);
         start = current;
 
         AdvanceWhile((c, next, i) =>
         {
-            if (c == interpolateStart && next == interpolateStart)
+            if (c is '\\')
+            {
+                if (escapeSequences.ContainsKey(next))
+                {
+                    current++;
+                }
+                else
+                {
+                    ReportError($"Invalid escape sequence '\\{next}'.");
+                }
+
+                return true;
+            }
+            else if (c == '{' && next == '{')
             {
                 current++;
             }
-            else if (c == interpolateStart && next != interpolateStart)
+            else if (c == '{' && next != '{')
             {
                 if (i != 0)
                 {
-                    AddToken(INTERPOLATED_TEXT, CurrentString.Replace(interpolateStart.ToString() + interpolateStart, interpolateStart.ToString()).Replace(interpolateEnd.ToString() + interpolateEnd, interpolateEnd.ToString()));
+                    AddToken(INTERPOLATED_TEXT, ReplaceEscapeSequences(CurrentString.Replace("{{", "{").Replace("}}", "}")));
                     start = current;
                 }
                 current++;
                 start++;
-                while (code[current] != interpolateEnd)
+                while (code[current] != '}')
                 {
                     ReadToken();
                     start = current;
@@ -268,17 +291,17 @@ internal static class Tokenizer
 
                 start++;
 
-                if (code[current] == interpolateStart)
+                if (code[current] == '{')
                 {
                     AddToken(INTERPOLATED_TEXT, "");
                 }
             }
 
-            if (code[current] == endChar)
+            if (code[current] == '"')
             {
                 if (start != current)
                 {
-                    AddToken(INTERPOLATED_TEXT, CurrentString.Replace("{{", "{").Replace("}}", "}"));
+                    AddToken(INTERPOLATED_TEXT, ReplaceEscapeSequences(CurrentString.Replace("{{", "{").Replace("}}", "}")));
                     start = current;
                 }
                 return false;
@@ -288,7 +311,17 @@ internal static class Tokenizer
         });
 
         current++;
-        AddToken(endType);
+        AddToken(INTERPOLATED_STRING_END);
+    }
+
+    private static string ReplaceEscapeSequences(string str)
+    {
+        foreach (KeyValuePair<char, char> pair in escapeSequences)
+        {
+            str = str.Replace($"\\{pair.Key}", pair.Value.ToString());
+        }
+
+        return str;
     }
 
     private static bool IsLastToken(params TokenType[] types)

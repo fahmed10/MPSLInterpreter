@@ -1,10 +1,17 @@
-﻿namespace MPSLInterpreter;
+﻿using System.Collections.Frozen;
+
+namespace MPSLInterpreter;
 
 /// <summary>
 /// The main class for handling and running MPSL programs.
 /// </summary>
 public static class MPSL
 {
+    /// <summary>
+    /// A dictionary of MPSL keywords to their token type.
+    /// </summary>
+    public static FrozenDictionary<string, TokenType> Keywords { get; } = Tokenizer.keywords.ToFrozenDictionary();
+
     private static void Main(string[] args)
     {
         if (args.Length == 1)

@@ -1,7 +1,7 @@
 use Regex
 
-@print Regex::@match "test123", "\d{2}"
-@print Regex::@matches "*a123*b456", "\*[a-z]"
+@print Regex::@match "test123", "\\d{2}"
+@print Regex::@matches "*a123*b456", "\\*[a-z]"
 @print Regex::@replace "123221232", "12", "-"
 
 # @EXPECT RUN

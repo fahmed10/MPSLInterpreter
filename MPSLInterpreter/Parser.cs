@@ -360,15 +360,7 @@ internal static class Parser
 
         while (MatchNextToken(COLON_COLON))
         {
-            try
-            {
-                Token name = RequireMatchNext([IDENTIFIER, COMMAND], "Expected identifier.");
-                expression = new Expression.GroupAccess(expression, name);
-            }
-            catch (ParseException)
-            {
-                expression = new Expression.GroupAccess(expression, null!);
-            }
+            expression = new Expression.GroupAccess(expression, TryRequireMatchNext([IDENTIFIER, COMMAND], "Expected identifier.") ? PreviousToken() : null!);
 
             if (PreviousToken().Type == COMMAND)
             {
@@ -689,6 +681,17 @@ internal static class Parser
         }
 
         return PreviousToken();
+    }
+
+    private static bool TryRequireMatchNext(TokenType[] types, string errorMessage)
+    {
+        if (!MatchNextToken(types))
+        {
+            ReportError(PeekToken(), errorMessage);
+            return false;
+        }
+
+        return true;
     }
 
     private static void RequireEndOfLineOrFile(string errorMessage)

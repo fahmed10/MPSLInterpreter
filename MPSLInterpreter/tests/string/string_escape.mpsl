@@ -1,0 +1,13 @@
+@print "test\\string"
+@print "\"te\"st\""
+@print "\\ \"\\\" \\"
+@print "\\\\\""
+@print "a\nb" = "a
+b"
+
+# @EXPECT RUN
+# test\string
+# "te"st"
+# \ "\" \
+# \\"
+# True

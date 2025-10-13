@@ -1,0 +1,5 @@
+"\ test \@" -> var str
+
+# @EXPECT ERROR
+# [L1, C1] Invalid escape sequence '\ '.
+# [L1, C8] Invalid escape sequence '\@'.
