@@ -1,0 +1,12 @@
+use "./_use_file.mpsl"
+
+@print Test::five
+@print Test::@num -1
+@print two
+@print @num 1
+
+# @EXPECT RUN
+# 5
+# -1
+# 2
+# 1

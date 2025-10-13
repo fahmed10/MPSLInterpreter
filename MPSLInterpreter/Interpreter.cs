@@ -88,7 +88,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         return left.Equals(right);
     }
 
-    void CheckNumericValue(Token token, [NotNull] object? value)
+    void CheckNumericValue(Token token, [NotNull] object? value, string? errorMessage = null)
     {
         if (value is null)
         {
@@ -104,7 +104,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         }
         else
         {
-            ReportError(token, "Value must be a number.");
+            ReportError(token, errorMessage ?? "Value must be a number.");
         }
     }
 
@@ -570,7 +570,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
     {
         object? index = Evaluate(expression.indexExpression);
 
-        CheckNumericValue(expression.start, index);
+        CheckNumericValue(expression.start, index, "Index of access expression must evaluate to a number.");
         if (!double.IsInteger((double)index))
         {
             ReportError(expression.start, "Index of access expression must evaluate to a whole number.");

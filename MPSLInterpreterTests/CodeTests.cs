@@ -16,19 +16,27 @@ public partial class CodeTests
     [TestCaseSource(nameof(RunTests), new object[] { "tests" })]
     public void TestCode(string filePath)
     {
+        if (Path.GetFileName(filePath).StartsWith('_'))
+        {
+            return;
+        }
+
         TestCodeFile(filePath, true);
         TestCodeFile(filePath, false);
     }
 
     private static void TestCodeFile(string filePath, bool trimCode)
     {
-        string code = File.ReadAllText(filePath);
+        string previousWorkingDirectory = Directory.GetCurrentDirectory();
+        Directory.SetCurrentDirectory(Path.GetDirectoryName(Path.GetFullPath(filePath))!);
+        string code = File.ReadAllText(Path.GetFileName(filePath));
         TextWriter standardOut = Console.Out;
         using StringWriter stringWriter = new();
         Console.SetOut(stringWriter);
         bool success = MPSL.Run(trimCode ? StripTestComments().Replace(code, "").TrimEnd() : code, new()).Success;
         Console.SetOut(standardOut);
         string[] outputLines = stringWriter.ToString().Split(NEWLINE_STRINGS, StringSplitOptions.None);
+        Directory.SetCurrentDirectory(previousWorkingDirectory);
 
         string[] lines = code
             .Split(NEWLINE_STRINGS, StringSplitOptions.None)

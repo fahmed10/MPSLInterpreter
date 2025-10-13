@@ -1,0 +1,8 @@
+group Test {
+    5 -> var five
+
+    fn @num x => x
+}
+
+2 -> var two
+fn @num x => x
