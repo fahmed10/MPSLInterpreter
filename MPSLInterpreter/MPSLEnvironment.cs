@@ -33,6 +33,14 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
                 Interpreter.ReportError(useToken, $"Function '{pair.Key}' has already been defined.");
             }
         }
+
+        foreach (var pair in other.groups)
+        {
+            if (!groups.TryAdd(pair.Key, pair.Value))
+            {
+                Interpreter.ReportError(useToken, $"Group '{pair.Key}' has already been defined.");
+            }
+        }
     }
 
     public void DefineVariable(string name, object? value)
