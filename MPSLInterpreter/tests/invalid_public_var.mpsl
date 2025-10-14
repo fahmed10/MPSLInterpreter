@@ -1,0 +1,6 @@
+use "./invalid_public_var.mpsl"
+
+public 0 -> var test
+
+# @EXPECT ERROR
+# [L3, C6] Expected var, fn, or group keyword after public keyword.

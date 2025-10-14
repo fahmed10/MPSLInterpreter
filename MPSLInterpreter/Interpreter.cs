@@ -648,7 +648,9 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         {
             if (StdLibrary.BuiltInGroups.groups.TryGetValue(statement.target.Lexeme, out MPSLGroup? group))
             {
-                environment.AddEnvironment(statement.target, group.Environment);
+                MPSLEnvironment groupEnvironment = new();
+                groupEnvironment.DefineGroup(statement.target.Lexeme, group);
+                environment.AddEnvironment(statement.target, groupEnvironment);
             }
             else
             {
@@ -665,13 +667,11 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
             ReportError(statement.target, $"File at '{path}' does not exist.");
         }
 
-        MPSLEnvironment env = new();
-        MPSL.RunFile(path, env);
+        MPSLRunResult result = MPSL.UseFile(statement.target, out MPSLEnvironment env);
 
-        if (env is null)
+        if (!result.Success)
         {
-            ReportError(statement.target, $"Failed to use '{statement.target.Value}'.");
-            return null;
+            ReportErrorRaw($"The above error occurred in used file '{statement.target.Value}', used at [L{statement.target.Line}, C{statement.target.Column}].");
         }
 
         environment.AddEnvironment(statement.target, env);
@@ -681,8 +681,9 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
     public object? VisitGroupDeclaration(Statement.GroupDeclaration statement)
     {
         MPSLEnvironment groupEnvironment = new(environment);
-        InterpretBlock(statement.body, groupEnvironment);
         environment.DefineGroup(statement.name, new(groupEnvironment), declaringPublic);
+        declaringPublic = false;
+        InterpretBlock(statement.body, groupEnvironment);
         return null;
     }
 
@@ -696,14 +697,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     public object? VisitGroupAccess(Expression.GroupAccess expression)
     {
-        MPSLGroup? group = (MPSLGroup?)Evaluate(expression.group);
-
-        if (group is null)
-        {
-            ReportError(expression.group.FirstToken, "Cannot access a null group.");
-            return null;
-        }
-
+        MPSLGroup group = (MPSLGroup)Evaluate(expression.group)!;
         return group.Environment.Get(expression.accessName);
     }
 

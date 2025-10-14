@@ -1,0 +1,9 @@
+public group Test {
+    5 -> public var five
+
+    public fn @test => 0
+    fn @num x => x + 1
+}
+
+2 -> public var two
+public fn @num x => x

@@ -10,6 +10,8 @@ internal static class Parser
     private static IList<Token> tokens = null!;
     private static List<ParserError> errors = [];
     private static int current;
+    private static bool wrapPublic = false;
+    private static Token wrapPublicToken = null!;
 
     private static readonly TokenType[][] binaryOperators = [
         [PIPE], // Or
@@ -27,6 +29,8 @@ internal static class Parser
         Parser.tokens = tokens;
         Parser.errors = [];
         current = 0;
+        wrapPublic = false;
+        wrapPublicToken = null!;
 
         List<Statement> statements = [];
 
@@ -54,7 +58,15 @@ internal static class Parser
     {
         if (MatchNextToken(PUBLIC))
         {
-            return new Statement.Public(PreviousToken(), DeclarationStatementRule(true));
+            Token publicToken = PreviousToken();
+            Statement statement = DeclarationStatementRule(true);
+
+            if (statement is Statement.ExpressionStatement expressionStatement && expressionStatement.expression is Expression.Assign)
+            {
+                ReportError(publicToken, "Expected var, fn, or group keyword after public keyword.");
+            }
+
+            return new Statement.Public(publicToken, statement);
         }
 
         return DeclarationStatementRule(required);
@@ -68,11 +80,16 @@ internal static class Parser
 
         if (required)
         {
-            Statement.ExpressionStatement statement = ExpressionStatementRule();
+            Statement statement = ExpressionStatementRule();
 
-            if (statement.expression is not Expression.Assign assign || assign.target is not Expression.VariableDeclaration)
+            if (((Statement.ExpressionStatement)statement).expression is not Expression.Assign assign || assign.target is not Expression.VariableDeclaration)
             {
                 ReportError(PreviousToken(), "Expected variable, function, or group declaration.");
+            }
+            else if (wrapPublic)
+            {
+                statement = new Statement.Public(wrapPublicToken, statement);
+                wrapPublic = false;
             }
 
             return statement;
@@ -92,7 +109,15 @@ internal static class Parser
         if (MatchNextToken(BREAK)) return BreakRule();
         if (MatchNextToken(USE)) return UseRule();
 
-        return ExpressionStatementRule();
+        Statement statement = ExpressionStatementRule();
+
+        if (wrapPublic)
+        {
+            statement = new Statement.Public(wrapPublicToken, statement);
+            wrapPublic = false;
+        }
+
+        return statement;
     }
 
     private static Statement.GroupDeclaration GroupRule()
@@ -288,6 +313,12 @@ internal static class Parser
             }
             else
             {
+                if (MatchNextToken(PUBLIC))
+                {
+                    wrapPublic = true;
+                    wrapPublicToken = PreviousToken();
+                }
+
                 return new Expression.Assign(VariableRule(), expression);
             }
         }

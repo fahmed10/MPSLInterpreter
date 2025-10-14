@@ -1,0 +1,4 @@
+Regex::@match "", ""
+
+# @EXPECT ERROR
+# [L1, C5] Runtime Error: Undefined group 'Regex'.

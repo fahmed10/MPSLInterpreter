@@ -11,6 +11,7 @@ public static class MPSL
     /// A dictionary of MPSL keywords to their token type.
     /// </summary>
     public static FrozenDictionary<string, TokenType> Keywords { get; } = Tokenizer.keywords.ToFrozenDictionary();
+    readonly static Dictionary<string, MPSLEnvironment> usedFiles = [];
 
     private static void Main(string[] args)
     {
@@ -71,11 +72,12 @@ public static class MPSL
     /// <returns>The result of running the code.</returns>
     public static MPSLRunResult RunFile(string path, MPSLEnvironment environment)
     {
-        string? file = null;
+        string? source = null;
 
         try
         {
-            file = File.ReadAllText(path);
+            usedFiles.Add(Path.GetFullPath(path), environment);
+            source = File.ReadAllText(path);
             Directory.SetCurrentDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
         }
         catch
@@ -83,11 +85,45 @@ public static class MPSL
             Utils.WriteLineColored($"An error occurred while trying to read the path '{path}'.", ConsoleColor.Red);
         }
 
-        if (file != null)
+        if (source != null)
         {
-            return Run(file, environment);
+            return Run(source, environment, false);
         }
 
+        return new(false, [], []);
+    }
+
+    internal static MPSLRunResult UseFile(Token pathToken, out MPSLEnvironment environment)
+    {
+        string? source = null;
+        string path = (string)pathToken.Value!;
+        string fullPath = Path.GetFullPath(path);
+
+        if (usedFiles.TryGetValue(fullPath, out MPSLEnvironment? env))
+        {
+            environment = env;
+            return new(true, [], []);
+        }
+
+        try
+        {
+            source = File.ReadAllText(path);
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(fullPath)!);
+        }
+        catch
+        {
+            Interpreter.ReportError(pathToken, $"Failed to read file at '{path}'.");
+        }
+
+        if (source != null)
+        {
+            environment = new();
+            usedFiles.Add(fullPath, environment);
+            MPSLRunResult result = Run(source, environment, false);
+            return result;
+        }
+
+        environment = null!;
         return new(false, [], []);
     }
 
@@ -97,8 +133,15 @@ public static class MPSL
     /// <param name="source">The MPSL code to run.</param>
     /// <param name="environment">The global environment to use while running the code.</param>
     /// <returns>The result of running the code.</returns>
-    public static MPSLRunResult Run(string source, MPSLEnvironment environment)
+    public static MPSLRunResult Run(string source, MPSLEnvironment environment) => Run(source, environment, true);
+
+    internal static MPSLRunResult Run(string source, MPSLEnvironment environment, bool clearUsed)
     {
+        if (clearUsed)
+        {
+            usedFiles.Clear();
+        }
+
         MPSLCheckResult result = Check(source);
 
         foreach (TokenizerError error in result.TokenizerErrors)

@@ -1,0 +1,6 @@
+use "./_use_file.mpsl"
+
+@print Test::@num 10
+
+# @EXPECT ERROR
+# [L3, C17] Runtime Error: Function '@num' is inaccessible as it is not public.

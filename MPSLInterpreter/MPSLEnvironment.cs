@@ -3,24 +3,34 @@
 namespace MPSLInterpreter;
 
 /// <summary>
-/// Stores variables and functions that were declared in its block in MPSL code.
+/// Stores variables, functions, and groups that were declared in its scope in MPSL code.
 /// </summary>
 /// <param name="parent">The parent of this environment.</param>
 public class MPSLEnvironment(MPSLEnvironment? parent = null)
 {
+    record struct Item<T>(bool Public, bool Visible, T Value);
+
     public ImmutableList<string> Variables => [.. variables.Keys];
     public ImmutableList<string> Functions => [.. functions.Keys.Select(name => "@" + name)];
     public ImmutableList<string> Groups => [.. groups.Keys];
-    internal readonly Dictionary<string, (bool @public, object? value, int position)> variables = [];
-    readonly Dictionary<string, (bool @public, ICallable function)> functions = [];
-    readonly Dictionary<string, (bool @public, MPSLGroup group)> groups = [];
+    readonly Dictionary<string, Item<(object? value, int position)>> variables = [];
+    readonly Dictionary<string, Item<ICallable>> functions = [];
+    readonly Dictionary<string, Item<MPSLGroup>> groups = [];
     internal object? contextValue = Invalid.Value;
+
+    private MPSLEnvironment(MPSLEnvironment environment, MPSLEnvironment? parent) : this(parent)
+    {
+        variables = new(environment.variables);
+        functions = new(environment.functions);
+        groups = new(environment.groups);
+        contextValue = environment.contextValue;
+    }
 
     internal void AddEnvironment(Token useToken, MPSLEnvironment other)
     {
         foreach (var pair in other.variables)
         {
-            if (!variables.TryAdd(pair.Key, pair.Value))
+            if (!variables.TryAdd(pair.Key, new(false, pair.Value.Public, (pair.Value.Value.value, -1))))
             {
                 Interpreter.ReportError(useToken, $"Variable '{pair.Key}' has already been defined.");
             }
@@ -28,7 +38,7 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
         foreach (var pair in other.functions)
         {
-            if (!functions.TryAdd(pair.Key, pair.Value))
+            if (!functions.TryAdd(pair.Key, new(false, pair.Value.Public, pair.Value.Value)))
             {
                 Interpreter.ReportError(useToken, $"Function '{pair.Key}' has already been defined.");
             }
@@ -36,11 +46,33 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
         foreach (var pair in other.groups)
         {
-            if (!groups.TryAdd(pair.Key, pair.Value))
+            if (!groups.TryAdd(pair.Key, new(false, pair.Value.Public, PrepareGroupForUse(pair.Value.Value))))
             {
                 Interpreter.ReportError(useToken, $"Group '{pair.Key}' has already been defined.");
             }
         }
+    }
+
+    private MPSLGroup PrepareGroupForUse(MPSLGroup group)
+    {
+        MPSLEnvironment env = group.Environment.DeepCopy();
+
+        foreach (var pair in env.variables)
+        {
+            env.variables[pair.Key] = new(pair.Value.Public, pair.Value.Public, (pair.Value.Value.value, -1));
+        }
+
+        foreach (var pair in env.functions)
+        {
+            env.functions[pair.Key] = new(pair.Value.Public, pair.Value.Public, pair.Value.Value);
+        }
+
+        foreach (var pair in env.groups)
+        {
+            env.groups[pair.Key] = new(pair.Value.Public, pair.Value.Public, PrepareGroupForUse(pair.Value.Value));
+        }
+
+        return new(env);
     }
 
     public void DefineVariable(string name, object? value)
@@ -50,7 +82,7 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
             throw new ArgumentException($"Variable '{name}' has already been defined in this environment.");
         }
 
-        variables[name] = (false, value, -1);
+        variables[name] = new(true, true, (value, -1));
     }
 
     internal void DefineVariable(Token token, object? value, bool @public)
@@ -64,7 +96,7 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
             Interpreter.ReportError(token, $"Cannot define a variable with the same name as the group '{token.Lexeme}'.");
         }
 
-        variables[token.Lexeme] = (@public, value, token.Start);
+        variables[token.Lexeme] = new(@public, true, (value, token.Start));
     }
 
     public void DefineFunction(string name, NativeFunction function)
@@ -74,7 +106,7 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
             throw new ArgumentException($"Function '{name}' has already been defined.");
         }
 
-        functions[name] = (false, function);
+        functions[name] = new(true, true, function);
     }
 
     internal void DefineFunction(Token token, ICallable function, bool @public)
@@ -84,16 +116,21 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
             Interpreter.ReportError(token, $"Function '{token.Lexeme}' has already been defined.");
         }
 
-        functions[(string)token.Value!] = (@public, function);
+        functions[(string)token.Value!] = new(@public, true, function);
     }
 
     internal ICallable GetFunction(Token name)
     {
         string functionName = (string)name.Value!;
 
-        if (functions.TryGetValue(functionName, out (bool @public, ICallable function) result))
+        if (functions.TryGetValue(functionName, out Item<ICallable> result))
         {
-            return result.function;
+            if (!result.Visible)
+            {
+                Interpreter.ReportError(name, $"Function '{name.Lexeme}' is inaccessible as it is not public.");
+            }
+
+            return result.Value;
         }
         else if (parent != null)
         {
@@ -112,9 +149,9 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
     {
         string functionName = name.Length > 0 && name[0] == '@' ? name[1..] : name;
 
-        if (functions.TryGetValue(functionName, out (bool @public, ICallable function) result))
+        if (functions.TryGetValue(functionName, out Item<ICallable> result))
         {
-            return result.function;
+            return result.Value;
         }
         else if (parent != null)
         {
@@ -139,7 +176,7 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
             Interpreter.ReportError(token, $"Cannot define a group with the same name as the variable '{token.Lexeme}'.");
         }
 
-        groups[token.Lexeme] = (@public, group);
+        groups[token.Lexeme] = new(@public, true, group);
     }
 
     public void DefineGroup(string name, MPSLGroup group)
@@ -153,14 +190,14 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
             throw new ArgumentException($"Cannot define a group with the same name as the variable '{name}'.");
         }
 
-        groups[name] = (false, group);
+        groups[name] = new(true, true, group);
     }
 
     public void AssignVariable(string name, object value)
     {
-        if (variables.TryGetValue(name, out (bool @public, object? value, int position) result))
+        if (variables.TryGetValue(name, out Item<(object? value, int position)> result))
         {
-            variables[name] = (result.@public, value, result.position);
+            variables[name] = new(result.Public, result.Visible, (value, result.Value.position));
             return;
         }
         else if (parent != null)
@@ -174,9 +211,14 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
     internal void AssignVariable(Token name, object? value)
     {
-        if (variables.TryGetValue(name.Lexeme, out (bool @public, object? value, int position) result))
+        if (variables.TryGetValue(name.Lexeme, out Item<(object? value, int position)> result))
         {
-            variables[name.Lexeme] = (result.@public, value, result.position);
+            if (!result.Visible)
+            {
+                Interpreter.ReportError(name, $"Variable '{name.Lexeme}' is inaccessible as it is not public.");
+            }
+
+            variables[name.Lexeme] = new(result.Public, result.Visible, (value, result.Value.position));
             return;
         }
         else if (parent != null)
@@ -190,9 +232,9 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
     public object? GetVariableValue(string name)
     {
-        if (variables.TryGetValue(name, out (bool @public, object? value, int position) result))
+        if (variables.TryGetValue(name, out Item<(object? value, int position)> result))
         {
-            return result.value;
+            return result.Value.value;
         }
         else if (parent != null)
         {
@@ -204,9 +246,14 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
     internal object? GetVariableValue(Token name)
     {
-        if (variables.TryGetValue(name.Lexeme, out (bool @public, object? value, int position) result) && result.position < name.Start)
+        if (variables.TryGetValue(name.Lexeme, out Item<(object? value, int position)> result) && result.Value.position < name.Start)
         {
-            return result.value;
+            if (!result.Visible)
+            {
+                Interpreter.ReportError(name, $"Variable '{name.Lexeme}' is inaccessible as it is not public.");
+            }
+
+            return result.Value.value;
         }
         else if (parent != null)
         {
@@ -219,17 +266,18 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
     internal MPSLGroup GetGroup(Token name)
     {
-        if (groups.TryGetValue(name.Lexeme, out (bool @public, MPSLGroup value) result))
+        if (groups.TryGetValue(name.Lexeme, out Item<MPSLGroup> result))
         {
-            return result.value;
+            if (!result.Visible)
+            {
+                Interpreter.ReportError(name, $"Group '{name.Lexeme}' is inaccessible as it is not public.");
+            }
+
+            return result.Value;
         }
         else if (parent != null)
         {
             return parent.GetGroup(name);
-        }
-        else if (StdLibrary.BuiltInGroups.groups.TryGetValue(name.Lexeme, out MPSLGroup? group))
-        {
-            return group;
         }
 
         Interpreter.ReportError(name, $"Undefined group '{name.Lexeme}'.");
@@ -238,17 +286,13 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
     public MPSLGroup GetGroup(string name)
     {
-        if (groups.TryGetValue(name, out (bool @public, MPSLGroup value) result))
+        if (groups.TryGetValue(name, out Item<MPSLGroup> result))
         {
-            return result.value;
+            return result.Value;
         }
         else if (parent != null)
         {
             return parent.GetGroup(name);
-        }
-        else if (StdLibrary.BuiltInGroups.groups.TryGetValue(name, out MPSLGroup? group))
-        {
-            return group;
         }
 
         throw new ArgumentException($"Undefined group '{name}'.");
@@ -267,4 +311,6 @@ public class MPSLEnvironment(MPSLEnvironment? parent = null)
 
         return GetVariableValue(name);
     }
+
+    internal MPSLEnvironment DeepCopy() => new(this, parent);
 }
