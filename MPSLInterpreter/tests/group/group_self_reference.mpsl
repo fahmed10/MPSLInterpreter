@@ -1,0 +1,9 @@
+group Group {
+    "test" -> var str
+    Group::str -> var str2
+}
+
+@print Group::str2
+
+# @EXPECT RUN
+# test

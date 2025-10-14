@@ -391,6 +391,11 @@ internal static class Parser
 
         while (MatchNextToken(COLON_COLON))
         {
+            if (expression is not (Expression.Group or Expression.GroupAccess))
+            {
+                ReportError(PreviousPreviousToken(), "Expected group name.");
+            }
+
             expression = new Expression.GroupAccess(expression, TryRequireMatchNext([IDENTIFIER, COMMAND], "Expected identifier.") ? PreviousToken() : null!);
 
             if (PreviousToken().Type == COMMAND)

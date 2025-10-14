@@ -1,0 +1,4 @@
+@print null::value
+
+# @EXPECT ERROR
+# [L1, C11] Expected group name.
