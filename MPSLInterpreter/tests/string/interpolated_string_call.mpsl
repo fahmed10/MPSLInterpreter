@@ -1,0 +1,8 @@
+fn @test => 1
+
+@print @"{@test}"
+@print @" {@test} "
+
+# @EXPECT RUN
+# 1
+#  1 

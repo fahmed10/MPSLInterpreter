@@ -609,7 +609,7 @@ internal static class Parser
     private static List<Expression> ReadCallArguments()
     {
         List<Expression> args = [];
-        TokenType[] callEndTokens = [CURLY_LEFT, ARROW, EOL, EOF, COMMA, PAREN_RIGHT, SQUARE_RIGHT];
+        TokenType[] callEndTokens = [CURLY_LEFT, ARROW, EOL, EOF, COMMA, PAREN_RIGHT, SQUARE_RIGHT, INTERPOLATED_TEXT, INTERPOLATED_STRING_END];
 
         while (!(IsNextNextToken([.. binaryOperators.SelectMany(t => t), .. callEndTokens]) && MatchNextToken(EXCLAMATION)) && !IsNextToken(callEndTokens))
         {
