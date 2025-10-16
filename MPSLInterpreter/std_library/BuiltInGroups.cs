@@ -8,5 +8,6 @@ public static class BuiltInGroups
     {
         { "Regex", new(Regex.GetEnvironment()) },
         { "IO", new(IO.GetEnvironment()) },
+        { "FFI", new(FFI.GetEnvironment()) }
     }.ToFrozenDictionary();
 }
