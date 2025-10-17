@@ -128,7 +128,7 @@ public abstract record class Expression : INode
 
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitCall(this);
         public override void Accept(IVisitor visitor) => visitor.VisitCall(this);
-        public override string ToString() => $"({callee} {arguments.Select(e => e.ToString()).Aggregate((a, b) => $"{a}, {b}")})";
+        public override string ToString() => $"({callee} {string.Join(", ", arguments)})";
     }
     public record Match(Expression value, IList<(Expression condition, Block body)> statements, Block? elseBlock, Token start, Token end) : Expression
     {

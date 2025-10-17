@@ -2,8 +2,9 @@
 
 namespace MPSLInterpreter;
 
-public record class NativeFunction(int ArgumentCount, Delegate Function) : ICallable
+public record class NativeFunction(Delegate Function) : ICallable
 {
+    public int ArgumentCount => parameterNames.Count;
     public ImmutableList<string> ParameterNames => parameterNames;
     readonly ImmutableList<string> parameterNames = [.. Function.Method.GetParameters().Select(p => p.Name!)];
 

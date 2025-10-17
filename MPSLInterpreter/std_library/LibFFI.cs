@@ -42,7 +42,7 @@ internal static unsafe partial class LibFFI
         public ffi_type** elements = (ffi_type**)0;
 
         public static readonly ffi_type Void = new(1, 0);
-        public static readonly ffi_type Pointer = new((ushort)nuint.Size, 14);
+        public static readonly ffi_type Pointer = new((ushort)nint.Size, 14);
         public static readonly ffi_type Struct = new(0, 13);
 
         public static readonly ffi_type Float = new(sizeof(float), 2);
@@ -61,8 +61,8 @@ internal static unsafe partial class LibFFI
         public static bool operator ==(ffi_type a, ffi_type b) => a.type == b.type;
         public static bool operator !=(ffi_type a, ffi_type b) => a.type != b.type;
 
-        public override bool Equals([NotNullWhen(true)] object? obj) => obj is ffi_type t && t.type == type;
-        public override int GetHashCode() => type;
+        public override readonly bool Equals([NotNullWhen(true)] object? obj) => obj is ffi_type t && t.type == type;
+        public override readonly int GetHashCode() => type;
     }
 
     [LibraryImport("libffi-8")]

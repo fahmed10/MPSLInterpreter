@@ -10,11 +10,11 @@ internal static class FFI
     public static MPSLEnvironment GetEnvironment()
     {
         MPSLEnvironment environment = new();
-        environment.DefineFunction("load_library", new(1, LoadLibrary));
-        environment.DefineFunction("unload_library", new(1, UnloadLibrary));
-        environment.DefineFunction("get_platform", new(0, GetPlatform));
-        environment.DefineFunction("get_arch", new(0, GetArch));
-        environment.DefineFunction("call", new(5, CallNative));
+        environment.DefineFunction("load_library", new(LoadLibrary));
+        environment.DefineFunction("unload_library", new(UnloadLibrary));
+        environment.DefineFunction("get_platform", new(GetPlatform));
+        environment.DefineFunction("get_arch", new(GetArch));
+        environment.DefineFunction("call", new(CallNative));
         environment.DefineVariable("void", ffi_type.Void);
         environment.DefineVariable("pointer", ffi_type.Pointer);
         environment.DefineVariable("float", ffi_type.Float);

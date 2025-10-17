@@ -7,9 +7,9 @@ internal static class Regex
     public static MPSLEnvironment GetEnvironment()
     {
         MPSLEnvironment environment = new();
-        environment.DefineFunction("match", new(2, RegexMatch));
-        environment.DefineFunction("matches", new(2, RegexMatches));
-        environment.DefineFunction("replace", new(3, RegexReplace));
+        environment.DefineFunction("match", new(RegexMatch));
+        environment.DefineFunction("matches", new(RegexMatches));
+        environment.DefineFunction("replace", new(RegexReplace));
         return environment;
     }
 

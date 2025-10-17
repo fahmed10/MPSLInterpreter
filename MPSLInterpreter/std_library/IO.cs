@@ -5,12 +5,12 @@ internal static class IO
     public static MPSLEnvironment GetEnvironment()
     {
         MPSLEnvironment environment = new();
-        environment.DefineFunction("read_file", new(1, ReadFile));
-        environment.DefineFunction("write_file", new(2, WriteFile));
-        environment.DefineFunction("del_file", new(1, DeleteFile));
-        environment.DefineFunction("del_dir", new(1, DeleteDirectory));
-        environment.DefineFunction("make_dir", new(1, MakeDirectory));
-        environment.DefineFunction("read_dir", new(1, ReadDirectory));
+        environment.DefineFunction("read_file", new(ReadFile));
+        environment.DefineFunction("write_file", new(WriteFile));
+        environment.DefineFunction("del_file", new(DeleteFile));
+        environment.DefineFunction("del_dir", new(DeleteDirectory));
+        environment.DefineFunction("make_dir", new(MakeDirectory));
+        environment.DefineFunction("read_dir", new(ReadDirectory));
         return environment;
     }
 
