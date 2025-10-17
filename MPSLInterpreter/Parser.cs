@@ -482,6 +482,8 @@ internal static class Parser
 
         do
         {
+            MatchNextToken(EOL);
+
             if (MatchNextToken(DOT_DOT))
             {
                 items.Add(new Expression.Object.Item.Spread(ExpressionRule()));
@@ -526,6 +528,8 @@ internal static class Parser
 
         do
         {
+            MatchNextToken(EOL);
+
             if (MatchNextToken(DOT_DOT))
             {
                 items.Add((ExpressionRule(), true));
@@ -614,6 +618,12 @@ internal static class Parser
         while (!(IsNextNextToken([.. binaryOperators.SelectMany(t => t), .. callEndTokens]) && MatchNextToken(EXCLAMATION)) && !IsNextToken(callEndTokens))
         {
             args.Add(NonAssignExpressionRule());
+
+            if (IsNextToken(COMMA) && IsNextNextToken(EOL))
+            {
+                ReadToken();
+                ReportError(PeekToken(), "Expected expression.");
+            }
 
             if (!MatchNextToken(COMMA))
             {

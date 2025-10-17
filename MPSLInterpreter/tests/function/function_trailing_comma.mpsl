@@ -1,0 +1,8 @@
+fn @test x => x
+
+@test 0,
+
+3 + 4 -> var n
+
+# @EXPECT ERROR
+# [L3, C8] Expected expression.

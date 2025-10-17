@@ -17,7 +17,13 @@ data2: 2) -> obj
 ) -> obj
 @print obj
 
+(
+
+) -> obj
+@print obj
+
 # @EXPECT RUN
 # ("data": 1, "data2": 2)
 # ("data": 1, "data2": 2)
 # ("data": 1, "data2": 2)
+# ()

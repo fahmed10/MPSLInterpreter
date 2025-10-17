@@ -5,5 +5,11 @@
 ] -> var array
 @print array
 
+[
+
+] -> var array2
+@print array2
+
 # @EXPECT RUN
 # [1, 2, 3]
+# []

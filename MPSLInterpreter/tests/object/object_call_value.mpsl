@@ -13,7 +13,7 @@ fn @value => 1
 (first: @mod 4, 2, second: 3, third: @mod 4, 2) -> [objects]
 
 (
-    first: @mod 4, 2,
+    first: @mod 4, 2!,
     second: 3,
     third: @mod 4, 2
 ) -> [objects]

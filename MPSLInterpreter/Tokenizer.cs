@@ -196,7 +196,7 @@ internal static class Tokenizer
         }
         else if (c is '\n')
         {
-            if (tokens.Count > 0 && !IsLastToken(EOL, CURLY_LEFT, PAREN_LEFT, SQUARE_LEFT, COMMA, COMMENT))
+            if (tokens.Count > 0 && !IsLastToken(EOL, CURLY_LEFT, PAREN_LEFT, SQUARE_LEFT, COMMENT))
             {
                 AddToken(EOL);
             }

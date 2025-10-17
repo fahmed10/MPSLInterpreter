@@ -1,0 +1,10 @@
+fn @test x => x
+
+{
+    @test 0,
+}
+
+3 + 4 -> var n
+
+# @EXPECT ERROR
+# [L4, C12] Expected expression.
