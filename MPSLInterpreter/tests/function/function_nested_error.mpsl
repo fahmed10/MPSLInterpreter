@@ -8,4 +8,4 @@ fn @test {
 # @EXPECT ERROR
 # In function '@test', called from [L6, C5]:
 # In function '@test2', called from [L3, C10]:
-# [L2, C20] Runtime Error: Operands must be two numbers or two strings.
+# [L2, C20] Runtime Error: Operator '+' cannot be used with operands of types 'number' and 'null'.

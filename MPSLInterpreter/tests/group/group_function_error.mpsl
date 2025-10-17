@@ -8,4 +8,4 @@ Test::Nested::@test
 
 # @EXPECT ERROR
 # In function 'Test::Nested::@test', called from [L7, C4]:
-# [L3, C23] Runtime Error: Operands must be two numbers or two strings.
+# [L3, C23] Runtime Error: Operator '+' cannot be used with operands of types 'number' and 'null'.

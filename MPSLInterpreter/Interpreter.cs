@@ -70,20 +70,9 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
     bool IsEqual(object? left, object? right)
     {
-        if (left is null && right is null)
-        {
-            return true;
-        }
-
-        if (left is null)
-        {
-            return false;
-        }
-
-        if (left is double d && right is double d2)
-        {
-            return d == d2;
-        }
+        if (left is null && right is null) return true;
+        if (left is null) return false;
+        if (left is double d1 && right is double d2) return d1 == d2;
 
         return left.Equals(right);
     }
@@ -92,7 +81,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
     {
         if (value is null)
         {
-            ReportError(token, "Value cannot be null.");
+            ReportError(token, errorMessage ?? "Value cannot be null.");
         }
 
         if (value is double num)
@@ -108,24 +97,13 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         }
     }
 
-    void CheckStringValue(Token token, [NotNull] object? value)
-    {
-        if (value is null)
-        {
-            ReportError(token, "Value cannot be null.");
-        }
-
-        if (value is string)
-        {
-            return;
-        }
-
-        ReportError(token, "Value must be a string.");
-    }
-
     public static string ToMPSLString(object? obj)
     {
-        return obj?.ToString() ?? "null";
+        return obj switch
+        {
+            null => "null",
+            _ => obj.ToString()!
+        };
     }
 
     public static string ToMPSLDebugString(object? obj)
@@ -134,6 +112,17 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         {
             string => $"\"{ToMPSLString(obj)}\"",
             _ => ToMPSLString(obj)
+        };
+    }
+
+    public static string GetMPSLType(object? obj)
+    {
+        return obj switch
+        {
+            null => "null",
+            string => "string",
+            double => "number",
+            _ => obj.GetType().ToString()
         };
     }
 
@@ -153,60 +142,61 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
     {
         object? left = Evaluate(expression.left);
         object? right = Evaluate(expression.right);
+        Token opToken = expression.operatorToken;
+        string errorMessage = $"Operator '{opToken.Lexeme}' cannot be used with operands of types '{GetMPSLType(left)}' and '{GetMPSLType(right)}'.";
 
-        if (expression.operatorToken.Type == PLUS)
+        if (opToken.Type == PLUS)
         {
             if (left is double d1 && right is double d2)
             {
-                CheckNumericValue(expression.operatorToken, left);
-                CheckNumericValue(expression.operatorToken, right);
+                CheckNumericValue(opToken, left, errorMessage);
+                CheckNumericValue(opToken, right, errorMessage);
                 return d1 + d2;
             }
             if (left is string s1 && right is string s2)
             {
-                CheckStringValue(expression.operatorToken, left);
-                CheckStringValue(expression.operatorToken, right);
                 return s1 + s2;
             }
 
-            ReportError(expression.operatorToken, "Operands must be two numbers or two strings.");
+            ReportError(opToken, errorMessage);
         }
 
-        if (expression.operatorToken.Type is EQUAL or EXCLAMATION_EQUAL)
+        if (opToken.Type == MINUS)
         {
-            return expression.operatorToken.Type switch
+            if (left is double d1 && right is double d2)
+            {
+                CheckNumericValue(opToken, left, errorMessage);
+                CheckNumericValue(opToken, right, errorMessage);
+                return d1 - d2;
+            }
+        }
+
+        if (opToken.Type is EQUAL or EXCLAMATION_EQUAL or AMPERSAND or PIPE)
+        {
+            return opToken.Type switch
             {
                 EQUAL => IsEqual(left, right),
                 EXCLAMATION_EQUAL => !IsEqual(left, right),
-                _ => null
+                AMPERSAND => IsTruthy(left) && IsTruthy(right),
+                PIPE => IsTruthy(left) || IsTruthy(right),
+                _ => throw new NotImplementedException()
             };
         }
 
-        if (expression.operatorToken.Type is AMPERSAND)
-        {
-            return IsTruthy(left) && IsTruthy(right);
-        }
+        CheckNumericValue(opToken, left, errorMessage);
+        CheckNumericValue(opToken, right, errorMessage);
 
-        if (expression.operatorToken.Type is PIPE)
-        {
-            return IsTruthy(left) || IsTruthy(right);
-        }
-
-        CheckNumericValue(expression.operatorToken, left);
-        CheckNumericValue(expression.operatorToken, right);
-
-        if (expression.operatorToken.Type is SLASH)
+        if (opToken.Type is SLASH)
         {
             if ((double)right == 0)
             {
-                ReportError(expression.operatorToken, "Cannot divide by zero.");
+                ReportError(opToken, "Cannot divide by zero.");
             }
             return (double)left / (double)right;
         }
 
-        return expression.operatorToken.Type switch
+        return opToken.Type switch
         {
-            MINUS => (double)left - (double)right,
             ASTERISK => (double)left * (double)right,
             GREATER => (double)left > (double)right,
             GREATER_EQUAL => (double)left >= (double)right,

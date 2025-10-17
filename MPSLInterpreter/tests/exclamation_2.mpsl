@@ -4,4 +4,4 @@ fn @mul a, b => a * b
 
 # @EXPECT ERROR
 # 6
-# [L3, C20] Runtime Error: Operands must be two numbers or two strings.
+# [L3, C20] Runtime Error: Operator '+' cannot be used with operands of types 'null' and 'number'.
