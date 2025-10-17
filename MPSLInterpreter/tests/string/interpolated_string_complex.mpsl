@@ -1,0 +1,5 @@
+@"{[1, 2]} {(first: 1, second: 2)}" -> var str
+@print str
+
+# @EXPECT RUN
+# [1, 2] ("first": 1, "second": 2)

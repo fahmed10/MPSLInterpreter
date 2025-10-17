@@ -626,7 +626,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
 
         foreach (Expression expression in interpolatedString.expressions)
         {
-            str.Append(Evaluate(expression));
+            str.Append(ToMPSLString(Evaluate(expression)));
         }
 
         return str.ToString();
