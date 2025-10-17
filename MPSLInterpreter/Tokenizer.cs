@@ -270,11 +270,16 @@ internal static class Tokenizer
 
                 return true;
             }
-            else if (c == '{' && next == '{')
+            else if ((c is '{' && next is '{') || (c is '}' && next is '}'))
             {
                 current++;
             }
-            else if (c == '{' && next != '{')
+            else if (c is '}')
+            {
+                current++;
+                ReportError("Encountered '}' with no opening '{' in interpolated string.");
+            }
+            else if (c == '{')
             {
                 if (i != 0)
                 {
@@ -283,21 +288,26 @@ internal static class Tokenizer
                 }
                 current++;
                 start++;
-                while (code[current] != '}')
+                while (current < code.Length && code[current] is not '}')
                 {
                     ReadToken();
                     start = current;
                 }
 
+                if (current >= code.Length)
+                {
+                    return false;
+                }
+
                 start++;
 
-                if (code[current] == '{')
+                if (code[current] is '{')
                 {
                     AddToken(INTERPOLATED_TEXT, "");
                 }
             }
 
-            if (code[current] == '"')
+            if (code[current] is '"')
             {
                 if (start != current)
                 {
@@ -310,7 +320,11 @@ internal static class Tokenizer
             return true;
         });
 
-        current++;
+        if (current < code.Length)
+        {
+            current++;
+        }
+
         AddToken(INTERPOLATED_STRING_END);
     }
 

@@ -33,11 +33,19 @@ public partial class CodeTests
         TextWriter standardOut = Console.Out;
         using StringWriter stringWriter = new();
         Console.SetOut(stringWriter);
-        bool success = MPSL.Run(trimCode ? StripTestComments().Replace(code, "").TrimEnd() : code, new()).Success;
-        Console.SetOut(standardOut);
-        string[] outputLines = stringWriter.ToString().Split(NEWLINE_STRINGS, StringSplitOptions.None);
-        Directory.SetCurrentDirectory(previousWorkingDirectory);
+        bool success = false;
 
+        try
+        {
+            success = MPSL.Run(trimCode ? StripTestComments().Replace(code, "").TrimEnd() : code, new()).Success;
+        }
+        finally
+        {
+            Console.SetOut(standardOut);
+            Directory.SetCurrentDirectory(previousWorkingDirectory);
+        }
+
+        string[] outputLines = stringWriter.ToString().Split(NEWLINE_STRINGS, StringSplitOptions.None);
         string[] lines = code
             .Split(NEWLINE_STRINGS, StringSplitOptions.None)
             .SkipWhile(l => !l.StartsWith("# @EXPECT"))

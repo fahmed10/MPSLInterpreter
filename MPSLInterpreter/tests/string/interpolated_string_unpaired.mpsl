@@ -1,0 +1,8 @@
+@"} } }" -> var str
+
+@print str
+
+# @EXPECT ERROR
+# [L1, C3] Encountered '}' with no opening '{' in interpolated string.
+# [L1, C5] Encountered '}' with no opening '{' in interpolated string.
+# [L1, C7] Encountered '}' with no opening '{' in interpolated string.

@@ -1,0 +1,5 @@
+@"{ " -> var str
+
+# @EXPECT ERROR
+# [L1, C17] Unterminated string literal.
+# [L1, C2] Only assign, call, and match expressions can be used as statements.
