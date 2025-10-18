@@ -29,6 +29,7 @@ public static class GlobalFunctions
         { "mod", new(Mod) },
         { "run_process", new(Run) },
         { "str", new(ToStr) },
+        { "type", new(GetMPSLType) }
     }.ToFrozenDictionary();
 
     private static double Time() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -105,4 +106,5 @@ public static class GlobalFunctions
     private static double Mod(double number, double by) => number % by;
     private static void Run(string path, MPSLArray args) => Process.Start(new ProcessStartInfo(path, args.Select(Interpreter.ToMPSLString)));
     private static string ToStr(object? value) => Interpreter.ToMPSLString(value);
+    private static string GetMPSLType(object? value) => Interpreter.GetMPSLType(value);
 }

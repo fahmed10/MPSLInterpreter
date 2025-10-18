@@ -1,0 +1,22 @@
+use FFI
+
+@print @type 1
+@print @type ""
+@print @type []
+@print @type ()
+@print @type FFI::Pointer::@create 0
+@print @type FFI::Type::int8
+@print @type true
+@print @type false
+@print @type null
+
+# @EXPECT RUN
+# number
+# string
+# array
+# object
+# pointer
+# Native::ffi_type
+# bool
+# bool
+# null
