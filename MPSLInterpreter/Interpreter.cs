@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Text;
 using static MPSLInterpreter.TokenType;
 
@@ -64,6 +65,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         {
             null => false,
             bool b => b,
+            nint n => n != 0,
             _ => true
         };
     }
@@ -73,6 +75,8 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         if (left is null && right is null) return true;
         if (left is null) return false;
         if (left is double d1 && right is double d2) return d1 == d2;
+        if (left is double d && right is nint n) return nint.CreateChecked(d) == n;
+        if (left is nint _n && right is double _d) return _n == nint.CreateChecked(_d);
 
         return left.Equals(right);
     }
@@ -102,6 +106,7 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
         return obj switch
         {
             null => "null",
+            nint n => $"0x{n:X}",
             _ => obj.ToString()!
         };
     }
@@ -122,7 +127,11 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
             null => "null",
             string => "string",
             double => "number",
-            _ => obj.GetType().ToString()
+            bool => "bool",
+            nint => "pointer",
+            MPSLArray => "array",
+            MPSLObject => "object",
+            _ => $"Native::{obj.GetType().Name}"
         };
     }
 
@@ -157,6 +166,9 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
             {
                 return s1 + s2;
             }
+            if (left is nint n1 && right is nint n2) return n1 + n2;
+            if (left is nint n && right is double d) return n + nint.CreateChecked(d);
+            if (left is double _d && right is nint _n) return _d + nint.CreateChecked(_n);
 
             ReportError(opToken, errorMessage);
         }
@@ -169,6 +181,9 @@ internal class Interpreter : Expression.IVisitor<object?>, Statement.IVisitor<ob
                 CheckNumericValue(opToken, right, errorMessage);
                 return d1 - d2;
             }
+            if (left is nint n1 && right is nint n2) return n1 - n2;
+            if (left is nint n && right is double d) return n - nint.CreateChecked(d);
+            if (left is double _d && right is nint _n) return _d - nint.CreateChecked(_n);
         }
 
         if (opToken.Type is EQUAL or EXCLAMATION_EQUAL or AMPERSAND or PIPE)
