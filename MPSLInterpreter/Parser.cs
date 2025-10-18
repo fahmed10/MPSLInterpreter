@@ -396,7 +396,12 @@ internal static class Parser
                 ReportError(PreviousPreviousToken(), "Expected group name.");
             }
 
-            expression = new Expression.GroupAccess(expression, TryRequireMatchNext([IDENTIFIER, COMMAND], "Expected identifier.") ? PreviousToken() : null!);
+            expression = new Expression.GroupAccess(expression, TryRequireMatchNext([IDENTIFIER, COMMAND, AT], "Expected identifier.") ? PreviousToken() : null!);
+
+            if (PreviousToken().Type == AT)
+            {
+                ReportError(PreviousToken(), "Expected identifier.");
+            }
 
             if (PreviousToken().Type == COMMAND)
             {

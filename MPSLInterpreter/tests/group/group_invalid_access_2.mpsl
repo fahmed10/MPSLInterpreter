@@ -1,0 +1,8 @@
+group Test {
+    fn @test => 0
+}
+
+@print Test::@
+
+# @EXPECT ERROR
+# [L5, C14] Expected identifier.
