@@ -180,7 +180,8 @@ internal static class FFI
         ulong ret;
 
         ffi_cif cif = new();
-        ffi_status status = ffi_prep_cif(&cif, ffi_abi.FFI_DEFAULT_ABI, (uint)args.Count, &returnType, argTypesArray);
+        ffi_abi abi = OperatingSystem.IsWindows() ? ffi_abi.FFI_WIN64 : ffi_abi.FFI_GNUW64;
+        ffi_status status = ffi_prep_cif(&cif, abi, (uint)args.Count, &returnType, argTypesArray);
 
         void** argValues = stackalloc void*[argTypes.Count];
 

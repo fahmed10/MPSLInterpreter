@@ -30,7 +30,6 @@ internal static unsafe partial class LibFFI
         FFI_WIN64,
         FFI_GNUW64,
         FFI_LAST_ABI,
-        FFI_DEFAULT_ABI = FFI_WIN64
     }
 
     [StructLayout(LayoutKind.Sequential)]
