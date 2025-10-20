@@ -29,7 +29,7 @@
     <ItemGroup>
         <DirectPInvoke Include="libffi-8" />
         <NativeLibrary Include="libffi/libffi-8.lib" Condition="$(RuntimeIdentifier.StartsWith('win'))" />
-        <NativeLibrary Include="libffi/libffi-8.a" Condition="!$(RuntimeIdentifier.StartsWith('win'))" />
+        <NativeLibrary Include="libffi/libffi.a" Condition="!$(RuntimeIdentifier.StartsWith('win'))" />
     </ItemGroup>
 
 	<ItemGroup>
